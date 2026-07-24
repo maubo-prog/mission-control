@@ -6,7 +6,7 @@
 HANDLES = {
     "tiktok": "spacefactswow",
     "youtube": "spacefactswow",   # dein YouTube-Handle
-    "instagram": "",              # leer lassen = ueberspringen
+    "instagram": "spacefactswow",  # leer lassen = ueberspringen
 }
 # ---------------------------------------------------------------
 
@@ -100,6 +100,20 @@ def get_youtube(h):
 def get_instagram(h):
     if not h:
         return {"f": None}
+    # 1) JSON-Endpunkt (zuverlaessigster Weg)
+    try:
+        req = urllib.request.Request(
+            "https://i.instagram.com/api/v1/users/web_profile_info/?username=" + h,
+            headers={"User-Agent": UA, "x-ig-app-id": "936619743392459",
+                     "Accept": "*/*", "Accept-Language": "en-US,en;q=0.9"})
+        with urllib.request.urlopen(req, timeout=25) as r:
+            j = json.loads(r.read().decode("utf-8", "ignore"))
+        f = j.get("data", {}).get("user", {}).get("edge_followed_by", {}).get("count")
+        if isinstance(f, int):
+            return {"f": f}
+    except Exception:
+        pass
+    # 2) Profilseite, 3) Lese-Proxy
     for getter in (lambda: fetch("https://www.instagram.com/" + h + "/"),
                    lambda: via_jina("https://www.instagram.com/" + h + "/")):
         try:
