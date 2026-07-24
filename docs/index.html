@@ -180,7 +180,7 @@ function render(){
       '<div style="font-size:40px;margin-bottom:10px">🛸</div>'+
       '<div style="font-family:Montserrat;font-weight:800;font-size:16px;margin-bottom:6px">Noch keine Daten an Bord</div>'+
       '<div style="color:var(--dim);font-size:13px;line-height:1.5">Starte auf GitHub einmal den Workflow '+
-      '(Actions → „Zahlen aktualisieren" → Run workflow). Ab morgen läuft alles von selbst.</div></div>';
+      '(Actions → „Zahlen aktualisieren“ → Run workflow). Ab morgen läuft alles von selbst.</div></div>';
     return;
   }
 
@@ -349,7 +349,7 @@ function saveViews(){
   }catch(e){
     const el=document.getElementById("error");
     el.textContent="Daten konnten nicht geladen werden ("+e.message+"). "+
-      "Lief der Workflow schon einmal? GitHub: Actions → „Zahlen aktualisieren" → Run workflow.";
+      "Lief der Workflow schon einmal? GitHub: Actions → „Zahlen aktualisieren“ → Run workflow.";
     el.classList.remove("hidden");
   }
   render();
