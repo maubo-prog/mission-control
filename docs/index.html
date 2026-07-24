@@ -110,6 +110,7 @@ const PLATFORMS = [
   {id:"instagram", name:"Instagram Reels", color:"var(--instagram)"},
 ];
 const LS_KEY = "sfw-manual-views"; // { "2026-07-24": 52400, ... }
+const LS_IG = "sfw-manual-ig";     // { "2026-07-24": 210, ... }
 
 const nf = new Intl.NumberFormat("de-DE");
 const fmt = n => (n==null||isNaN(n)) ? "–" : nf.format(n);
@@ -129,6 +130,7 @@ const days = (a,b) => Math.round((new Date(b+"T00:00:00")-new Date(a+"T00:00:00"
 let ENTRIES = [], METRIC = "f";
 
 function manualViews(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||"{}"); }catch(e){ return {}; } }
+function manualIG(){ try{ return JSON.parse(localStorage.getItem(LS_IG)||"{}"); }catch(e){ return {}; } }
 
 // data.json-Eintraege + manuelle TikTok-Views zu einer Zeitreihe verbinden
 function series(){
@@ -148,6 +150,11 @@ function series(){
   for(const d in mv){
     if(!map[d]) map[d] = {date:d, tiktok:{f:null,l:null,v:null}, youtube:{f:null,v:null}, instagram:{f:null,v:null}};
     map[d].tiktok.v = mv[d];
+  }
+  const mig = manualIG();
+  for(const d in mig){
+    if(!map[d]) map[d] = {date:d, tiktok:{f:null,l:null,v:null}, youtube:{f:null,v:null}, instagram:{f:null,v:null}};
+    map[d].instagram.f = mig[d];
   }
   return Object.values(map).sort((a,b)=>a.date.localeCompare(b.date));
 }
@@ -261,11 +268,13 @@ function render(){
   }
 
   // TikTok-Views eintragen (localStorage)
-  html += '<div class="card" id="viewsCard"><div class="eyebrow">TikTok-Views eintragen (1×/Woche)</div>'+
-    '<div style="display:flex;gap:8px"><input id="mvDate" type="date" style="color-scheme:dark" value="'+today()+'">'+
-    '<input id="mvVal" inputmode="numeric" placeholder="Views gesamt"></div>'+
-    '<button class="btn" style="margin-top:10px;padding:12px" onclick="saveViews()">Speichern</button>'+
-    '<div class="note">Aus TikTok Studio → Analytics. Wird nur auf diesem Handy gespeichert.</div></div>';
+  html += '<div class="card" id="manualCard"><div class="eyebrow">Manuell ergänzen (1×/Woche)</div>'+
+    '<input id="mvDate" type="date" style="color-scheme:dark" value="'+today()+'">'+
+    '<div style="display:flex;gap:8px;margin-top:8px">'+
+    '<input id="mvVal" inputmode="numeric" placeholder="TikTok-Views gesamt">'+
+    '<input id="migVal" inputmode="numeric" placeholder="Insta-Follower"></div>'+
+    '<button class="btn" style="margin-top:10px;padding:12px" onclick="saveManual()">Speichern</button>'+
+    '<div class="note">Views aus TikTok Studio → Analytics · Insta-Follower aus der App oder Metricool. Eines von beiden reicht. Wird nur auf diesem Handy gespeichert.</div></div>';
 
   // Chart
   if(S.length>=2){
@@ -325,12 +334,13 @@ function svgChart(S){
 }
 
 function setMetric(m){ METRIC=m; render(); }
-function saveViews(){
+function saveManual(){
   const d=document.getElementById("mvDate").value;
   const v=parseInt(String(document.getElementById("mvVal").value).replace(/[^\d]/g,""),10);
-  if(!d||isNaN(v)){ alert("Bitte Datum und Zahl eingeben."); return; }
-  const mv=manualViews(); mv[d]=v;
-  try{ localStorage.setItem(LS_KEY, JSON.stringify(mv)); }catch(e){}
+  const g=parseInt(String(document.getElementById("migVal").value).replace(/[^\d]/g,""),10);
+  if(!d||(isNaN(v)&&isNaN(g))){ alert("Bitte Datum und mindestens eine Zahl eingeben."); return; }
+  if(!isNaN(v)){ const mv=manualViews(); mv[d]=v; try{ localStorage.setItem(LS_KEY, JSON.stringify(mv)); }catch(e){} }
+  if(!isNaN(g)){ const mg=manualIG(); mg[d]=g; try{ localStorage.setItem(LS_IG, JSON.stringify(mg)); }catch(e){} }
   render();
 }
 
