@@ -7,8 +7,7 @@ Schreiben nur ueber `/handoff` (ersetzt den Inhalt, haengt nichts an). Maximal 4
 ## Erledigt
 
 - Setup fuer Claude Code angelegt: `CLAUDE.md`, `.claude/rules/` (3), `.claude/settings.json`,
-  `.claude/hooks/` (guard, check, stop), `.claude/skills/` (9), `.claude/agents/pruefer.md`,
-  `.claude/CHEATSHEET.md`, `.claude/routines.md`.
+  `.claude/hooks/` (3), `.claude/skills/` (9), `.claude/agents/pruefer.md`, `CHEATSHEET.md`, `routines.md`.
 - Hilfsskripte `tools/check_data.py`, `check_html.py`, `stats.py`, nur Standardbibliothek.
 - Tests `tests/test_update.py` (7 Faelle zu `compact`, `merge`, `grab`), kein Netzzugriff.
 - GitHub: `ci.yml`, `watchdog.yml` (Ausfall-Alarm, kostenlos, legt Issue an), `dependabot.yml`,
@@ -38,4 +37,4 @@ Schreiben nur ueber `/handoff` (ersetzt den Inhalt, haengt nichts an). Maximal 4
 ## Branch und offene PRs
 
 - Branch: claude/setup-repo-claude-code-bm1zhu
-- PR: siehe Chat, wird am Ende dieser Session geoeffnet
+- PR: https://github.com/maubo-prog/mission-control/pull/2 (offen, Merge macht der Betreiber)
