@@ -37,74 +37,86 @@ jobs:
               report.append(line)
               print(line)
 
+          def sichern():
+              d = pathlib.Path("tests/fixtures")
+              d.mkdir(parents=True, exist_ok=True)
+              (d / "_probe_bericht.txt").write_text("\n".join(report), encoding="utf-8")
+              return d
+
           req = urllib.request.Request("https://www.youtube.com/@spacefactswow?hl=en", headers=HEAD)
           with urllib.request.urlopen(req, timeout=30) as r:
               html = r.read().decode("utf-8", "ignore")
           api_key = re.search(r'"INNERTUBE_API_KEY":"([^"]+)"', html).group(1)
           channel = re.search(r'"(?:externalId|browseId)":"(UC[\w-]{20,})"', html).group(1)
           version = re.search(r'"INNERTUBE_CLIENT_VERSION":"([^"]+)"', html).group(1)
-          say("Kanal", channel, "Client", version, "HTML", len(html))
+          visitor = re.search(r'"visitorData":"([^"]+)"', html)
+          visitor = visitor.group(1) if visitor else None
+          say("Kanal", channel, "Client", version, "visitorData:", bool(visitor))
 
-          # 1) Continuation-Token fuer den About-Panel im Seitenquelltext.
-          tokens = re.findall(r'"continuationCommand":\{"token":"([^"]{20,})","request":"CONTINUATION_REQUEST_TYPE_([A-Z_]+)"', html)
-          say("Continuation-Tokens im HTML:", len(tokens),
-              [t[1] for t in tokens][:8])
-          panel_ids = sorted(set(re.findall(r'"(?:targetId|panelIdentifier)":"([^"]{3,60})"', html)))
-          say("Panel-Kennungen:", panel_ids[:12])
-
-          def browse(payload):
-              body = {"context": {"client": {"clientName": "WEB", "clientVersion": version,
-                                             "hl": "en", "gl": "US"}}}
+          def browse(payload, mit_visitor=True):
+              client = {"clientName": "WEB", "clientVersion": version, "hl": "en", "gl": "US"}
+              if mit_visitor and visitor:
+                  client["visitorData"] = visitor
+              body = {"context": {"client": client}}
               body.update(payload)
+              headers = dict(HEAD, **{
+                  "Content-Type": "application/json",
+                  "X-YouTube-Client-Name": "1",
+                  "X-YouTube-Client-Version": version,
+                  "Origin": "https://www.youtube.com",
+                  "Referer": "https://www.youtube.com/@spacefactswow",
+              })
+              if mit_visitor and visitor:
+                  headers["X-Goog-Visitor-Id"] = visitor
               req = urllib.request.Request(
-                  "https://www.youtube.com/youtubei/v1/browse?key=" + api_key,
-                  data=json.dumps(body).encode("utf-8"),
-                  headers=dict(HEAD, **{"Content-Type": "application/json"}))
+                  "https://www.youtube.com/youtubei/v1/browse?key=" + api_key + "&prettyPrint=false",
+                  data=json.dumps(body).encode("utf-8"), headers=headers)
               with urllib.request.urlopen(req, timeout=30) as r:
                   return r.read().decode("utf-8", "ignore")
 
-          def zahlen(raw, label):
-              treffer = re.findall(r'"([A-Za-z]*[Cc]ount[A-Za-z]*|[A-Za-z]*[Vv]iew[A-Za-z]*)":"([^"]{1,40})"', raw)
-              gefiltert = [(k, v) for k, v in treffer
-                           if re.search(r"\d", v) and len(v) < 40]
-              say("\n[%s] Laenge %d, Zahlfelder %d" % (label, len(raw), len(gefiltert)))
-              seen = set()
-              for k, v in gefiltert:
-                  if (k, v) in seen:
-                      continue
-                  seen.add((k, v))
-                  say("   ", k, "=", repr(v))
-                  if len(seen) > 25:
-                      break
-              for m in list(re.finditer(r'"[^"]{0,30}[\d,\.]+ (?:views|subscribers|videos)[^"]{0,20}"', raw))[:12]:
-                  say("   Text:", m.group(0))
-              return raw
-
           versuche = [
-              ("about-params", {"browseId": channel, "params": "EgVhYm91dA=="}),
-              ("kanal-roh", {"browseId": channel}),
+              ("about-roh", {"browseId": channel, "params": "EgVhYm91dPIGBAoCEgA="}),
+              ("about-kodiert", {"browseId": channel, "params": "EgVhYm91dPIGBAoCEgA%3D"}),
+              ("about-kurz", {"browseId": channel, "params": "EgVhYm91dA=="}),
           ]
-          for t, kind in tokens[:6]:
-              if kind in ("BROWSE", "RELOAD", "WATCH_NEXT"):
-                  continue
-              versuche.append(("continuation-" + kind, {"continuation": t}))
-
           gewinner = None
           for label, payload in versuche:
               try:
                   raw = browse(payload)
               except Exception as e:
-                  say("\n[%s] FEHLER %r" % (label, e))
+                  say("[%s] FEHLER %r" % (label, e))
                   continue
-              zahlen(raw, label)
-              if "aboutChannelViewModel" in raw and gewinner is None:
+              hat = "aboutChannelViewModel" in raw
+              top = list(json.loads(raw).keys())
+              say("[%s] Laenge %d, aboutChannelViewModel: %s, Top-Level: %s"
+                  % (label, len(raw), hat, top))
+              for m in list(re.finditer(r'"[\d,\.]+ views"', raw))[:3]:
+                  say("    ", m.group(0))
+              if hat and gewinner is None:
                   gewinner = (label, raw)
-                  say("   >>> aboutChannelViewModel gefunden in", label)
 
-          out_dir = pathlib.Path("tests/fixtures")
-          out_dir.mkdir(parents=True, exist_ok=True)
-          (out_dir / "_probe_bericht.txt").write_text("\n".join(report), encoding="utf-8")
+          # Vergleichswert: Summe der Aufrufe aller Videos ueber den Videos-Tab.
+          summe, anzahl, cont = 0, 0, None
+          raw = browse({"browseId": channel, "params": "EgZ2aWRlb3PyBgQKAjoA"})
+          for runde in range(8):
+              werte = re.findall(r'"([\d,\.]+) views"', raw)
+              for w in werte:
+                  try:
+                      summe += int(w.replace(",", "").replace(".", ""))
+                      anzahl += 1
+                  except ValueError:
+                      pass
+              m = re.search(r'"continuationCommand":\{"token":"([^"]+)"', raw)
+              if not m:
+                  break
+              try:
+                  raw = browse({"continuation": m.group(1)})
+              except Exception as e:
+                  say("Continuation FEHLER", repr(e))
+                  break
+          say("Videos-Tab: %d Videos gezaehlt, Summe der Aufrufe %d" % (anzahl, summe))
 
+          d = sichern()
           if gewinner:
               label, raw = gewinner
               obj = json.loads(raw)
@@ -129,10 +141,10 @@ jobs:
               for step in reversed(path[:-1]):
                   value = {step: value} if isinstance(step, str) else [value]
               full = {path[-1]: value} if len(path) == 1 else value
-              (out_dir / "youtube_about_2026-09-05.json").write_text(
+              (d / "youtube_about_2026-09-05.json").write_text(
                   json.dumps(full, ensure_ascii=False, indent=1), encoding="utf-8")
-              say("Fixture geschrieben, Pfad im JSON:", path)
-              (out_dir / "_probe_bericht.txt").write_text("\n".join(report), encoding="utf-8")
+              say("Fixture geschrieben aus", label, "Pfad", path)
+              sichern()
           PY
 
       - name: Bericht und Fixture committen
