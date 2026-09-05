@@ -46,3 +46,19 @@ Kein Abo, kein Server, keine laufenden Kosten.
   (UTC-Zeit; 04:30 UTC = 06:30 deutsche Sommerzeit).
 - **Zahlen sofort aktualisieren**: Actions → „Zahlen aktualisieren" → *Run workflow*.
 - Das Dashboard zeigt nur öffentliche Zahlen deiner eigenen Accounts, 1 Abruf pro Tag.
+
+## Für Entwickler und Claude
+
+`docs/data.json` schreibt der Bot aus `update.yml` direkt auf main. Nicht von Hand ändern,
+Korrekturen laufen über einen kurzen PR (Skill `/data-repair`).
+
+```
+python3 -m py_compile update.py                  # Syntax
+python3 -m unittest discover -s tests -v         # Tests
+python3 tools/check_data.py                      # Schema von data.json
+python3 tools/check_html.py                      # Dashboard-Struktur und IDs
+python3 tools/stats.py --days 30                 # Zahlen für Berichte
+cd docs && python3 -m http.server 8000           # Dashboard lokal ansehen
+```
+
+Nur Standardbibliothek, kein Build-Step. Projektregeln in `CLAUDE.md`, Spickzettel in `.claude/CHEATSHEET.md`.
