@@ -1,6 +1,5 @@
-# TEMPORAER: holt einmalig die YouTube-About-Seite, kuerzt sie auf den
-# Kanal-Block, schwaerzt Tokens und committet die Fixture auf diesen Branch.
-# Wird vor dem Pull Request wieder geloescht.
+# TEMPORAER: sucht die Quelle fuer die Kanal-Gesamtaufrufe und legt die
+# passende Fixture auf diesem Branch ab. Wird vor dem Pull Request geloescht.
 name: Fixture holen (temporaer)
 
 on:
@@ -19,77 +18,88 @@ jobs:
         with:
           ref: claude/briefing-h9gjow
 
-      - name: About-Seite holen, kuerzen, schwaerzen
+      - name: Quelle der Kanal-Views suchen
         run: |
           python3 - <<'PY'
+          import json
           import pathlib
           import re
           import urllib.request
 
           UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
                 "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
+          HEAD = {"User-Agent": UA, "Accept-Language": "en-US,en;q=0.9",
+                  "Cookie": "CONSENT=YES+1"}
 
-          html = ""
-          for url in ("https://www.youtube.com/@spacefactswow/about",
-                      "https://www.youtube.com/@spacefactswow"):
-              req = urllib.request.Request(url, headers={
-                  "User-Agent": UA,
-                  "Accept-Language": "en-US,en;q=0.9",
-                  "Accept": "text/html,application/xhtml+xml,*/*;q=0.8",
-                  "Cookie": "CONSENT=YES+1",
-              })
+          def get(url):
+              req = urllib.request.Request(url, headers=HEAD)
+              with urllib.request.urlopen(req, timeout=30) as r:
+                  return r.read().decode("utf-8", "ignore")
+
+          html = get("https://www.youtube.com/@spacefactswow?hl=en")
+          print("Seite geladen, Laenge", len(html))
+
+          # A) Steht die Kanalsumme irgendwo im vollen Quelltext?
+          for key in ("viewCountText", "aboutChannelViewModel", "channelAboutFullMetadataRenderer"):
+              hits = [m.start() for m in re.finditer(re.escape(key), html)]
+              print("\nA) %s: %d Treffer" % (key, len(hits)))
+              for pos in hits[:2]:
+                  print("   ", repr(html[pos:pos + 160]))
+
+          key_m = re.search(r'"INNERTUBE_API_KEY":"([^"]+)"', html)
+          ch_m = re.search(r'"(?:externalId|browseId)":"(UC[\w-]{20,})"', html)
+          ver_m = re.search(r'"INNERTUBE_CLIENT_VERSION":"([^"]+)"', html)
+          print("\nAPI-Key gefunden:", bool(key_m), "Kanal-ID:", ch_m.group(1) if ch_m else None,
+                "Client:", ver_m.group(1) if ver_m else None)
+
+          # B) Innertube-Aufruf fuer den About-Tab.
+          data = None
+          if key_m and ch_m:
+              body = {
+                  "context": {"client": {"clientName": "WEB",
+                                         "clientVersion": ver_m.group(1) if ver_m else "2.20240101.00.00",
+                                         "hl": "en", "gl": "US"}},
+                  "browseId": ch_m.group(1),
+                  "params": "EgVhYm91dPIGBAoCEgA%3D",
+              }
+              req = urllib.request.Request(
+                  "https://www.youtube.com/youtubei/v1/browse?key=" + key_m.group(1),
+                  data=json.dumps(body).encode("utf-8"),
+                  headers=dict(HEAD, **{"Content-Type": "application/json"}))
               try:
                   with urllib.request.urlopen(req, timeout=30) as r:
-                      html = r.read().decode("utf-8", "ignore")
-                  print("Quelle:", url, "Laenge:", len(html))
-                  break
+                      raw = r.read().decode("utf-8", "ignore")
+                  print("\nB) Innertube OK, Laenge", len(raw))
+                  for key in ("viewCountText", "aboutChannelViewModel", "subscriberCountText",
+                              "videoCountText", "joinedDateText"):
+                      for m in list(re.finditer(re.escape(key), raw))[:2]:
+                          print("   ", repr(raw[m.start():m.start() + 200]))
+                  data = raw
               except Exception as e:
-                  print("FEHLER", url, repr(e))
-          if not html:
-              raise SystemExit("keine Seite bekommen")
+                  print("\nB) Innertube FEHLER", repr(e))
 
-          # Ausschnitt um den Kanal-Block. Reihenfolge = Verlaesslichkeit.
-          anchor = -1
-          for key in ("aboutChannelViewModel", "channelAboutFullMetadataRenderer",
-                      "subscriberCountText", "videoCountText"):
-              anchor = html.find(key)
-              if anchor >= 0:
-                  print("Anker:", key, "bei", anchor)
-                  break
-          if anchor < 0:
-              raise SystemExit("kein Anker in der Seite, vermutlich Bot-Sperre")
-
-          head = html[:1200]
-          body = html[max(0, anchor - 4000):anchor + 24000]
-          cut = head + "\n<!-- gekuerzt fuer die Fixture -->\n" + body
-
-          # Tokens und Sitzungskennungen schwaerzen.
-          for key in ("visitorData", "ID_TOKEN", "INNERTUBE_API_KEY", "sessionId",
-                      "datasyncId", "delegatedSessionId", "serializedExperimentIds",
-                      "VISITOR_DATA", "eventId", "csn"):
-              cut = re.sub(r'("%s"\s*:\s*")[^"]*(")' % key, r"\1GESCHWAERZT\2", cut)
-          cut = re.sub(r"(?i)(set-cookie)[^\n]*", r"\1: GESCHWAERZT", cut)
-
-          out = pathlib.Path("tests/fixtures/youtube_about_2026-09-05.html")
-          out.parent.mkdir(parents=True, exist_ok=True)
-          out.write_text(cut, encoding="utf-8")
-          print("Fixture:", out, len(cut), "Zeichen")
-
-          # Kompakte Uebersicht fuer das Log, damit die Zielzahl sichtbar ist.
-          print("\n--- Kandidaten fuer die Kanal-Views ---")
-          for m in list(re.finditer(r'"viewCountText"\s*:\s*("[^"]{0,60}"|\{[^}]{0,120}\})', cut))[:6]:
-              print(repr(m.group(0)))
-          for m in list(re.finditer(r'"(subscriberCountText|videoCountText|joinedDateText)"\s*:\s*("[^"]{0,60}"|\{[^}]{0,160}\})', cut))[:6]:
-              print(repr(m.group(0)))
-          print("\n--- erste sechs 'views' im gekuerzten Ausschnitt ---")
-          for m in list(re.finditer(r"[\d.,]+\s*(?:views|Aufrufe)", cut))[:6]:
-              print(repr(cut[max(0, m.start() - 70):m.end() + 10]))
+          if data:
+              red = data
+              for key in ("visitorData", "ID_TOKEN", "sessionId", "datasyncId",
+                          "delegatedSessionId", "trackingParams", "clickTrackingParams"):
+                  red = re.sub(r'("%s"\s*:\s*")[^"]*(")' % key, r"\1GESCHWAERZT\2", red)
+              try:
+                  obj = json.loads(red)
+                  red = json.dumps(obj, ensure_ascii=False)[:45000]
+              except Exception:
+                  red = red[:45000]
+              out = pathlib.Path("tests/fixtures/youtube_about_2026-09-05.json")
+              out.parent.mkdir(parents=True, exist_ok=True)
+              out.write_text(red, encoding="utf-8")
+              print("\nFixture geschrieben:", out, len(red), "Zeichen")
           PY
 
       - name: Fixture committen
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add tests/fixtures/youtube_about_2026-09-05.html
-          git commit -m "Setup: YouTube-Fixture vom Runner geholt" || echo "nichts zu committen"
+          git rm -q --cached --ignore-unmatch tests/fixtures/youtube_about_2026-09-05.html
+          rm -f tests/fixtures/youtube_about_2026-09-05.html
+          git add -A tests/fixtures/
+          git commit -m "Setup: YouTube-About-Fixture vom Runner geholt" || echo "nichts zu committen"
           git push origin HEAD:claude/briefing-h9gjow
