@@ -1,6 +1,6 @@
-# TEMPORAER: holt einmalig die YouTube-About-Seite und gibt die relevanten
-# Ausschnitte ins Log, damit daraus eine Fixture unter tests/fixtures/ entsteht.
-# Wird vor dem Pull Request wieder geloescht. Schreibt nichts ins Repo.
+# TEMPORAER: holt einmalig die YouTube-About-Seite, kuerzt sie auf den
+# Kanal-Block, schwaerzt Tokens und committet die Fixture auf diesen Branch.
+# Wird vor dem Pull Request wieder geloescht.
 name: Fixture holen (temporaer)
 
 on:
@@ -9,28 +9,29 @@ on:
       - claude/briefing-h9gjow
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   fixture:
     runs-on: ubuntu-latest
     steps:
-      - name: About-Seite holen und Ausschnitte ausgeben
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/briefing-h9gjow
+
+      - name: About-Seite holen, kuerzen, schwaerzen
         run: |
           python3 - <<'PY'
-          import base64
+          import pathlib
           import re
           import urllib.request
 
           UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
                 "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
-          URLS = [
-              "https://www.youtube.com/@spacefactswow/about",
-              "https://www.youtube.com/@spacefactswow",
-          ]
 
           html = ""
-          for url in URLS:
+          for url in ("https://www.youtube.com/@spacefactswow/about",
+                      "https://www.youtube.com/@spacefactswow"):
               req = urllib.request.Request(url, headers={
                   "User-Agent": UA,
                   "Accept-Language": "en-US,en;q=0.9",
@@ -40,47 +41,55 @@ jobs:
               try:
                   with urllib.request.urlopen(req, timeout=30) as r:
                       html = r.read().decode("utf-8", "ignore")
-                  print("OK", url, "Laenge", len(html))
+                  print("Quelle:", url, "Laenge:", len(html))
                   break
               except Exception as e:
                   print("FEHLER", url, repr(e))
-
           if not html:
               raise SystemExit("keine Seite bekommen")
 
-          KEYS = [
-              "aboutChannelViewModel",
-              "viewCountText",
-              "subscriberCountText",
-              "videoCountText",
-              "joinedDateText",
-              "canonicalChannelUrl",
-          ]
-          for key in KEYS:
-              hits = [m.start() for m in re.finditer(re.escape(key), html)]
-              print("\n=== %s: %d Treffer ===" % (key, len(hits)))
-              for pos in hits[:3]:
-                  print(repr(html[max(0, pos - 120):pos + 400]))
-
-          print("\n=== alle 'views'-Zahlen in Reihenfolge (erste 15) ===")
-          for m in list(re.finditer(r"[\d.,]+\s*(?:views|Aufrufe)", html))[:15]:
-              print(repr(html[max(0, m.start() - 60):m.end() + 20]))
-
-          # Zusammenhaengender Ausschnitt rund um den Kanal-Block, als Basis fuer
-          # die Fixture. Base64, damit das Log nichts umbricht oder verschluckt.
-          anchor = html.find("aboutChannelViewModel")
+          # Ausschnitt um den Kanal-Block. Reihenfolge = Verlaesslichkeit.
+          anchor = -1
+          for key in ("aboutChannelViewModel", "channelAboutFullMetadataRenderer",
+                      "subscriberCountText", "videoCountText"):
+              anchor = html.find(key)
+              if anchor >= 0:
+                  print("Anker:", key, "bei", anchor)
+                  break
           if anchor < 0:
-              anchor = html.find("viewCountText")
-          if anchor < 0:
-              anchor = html.find("subscriberCountText")
-          if anchor >= 0:
-              cut = html[max(0, anchor - 3000):anchor + 12000]
-              blob = base64.b64encode(cut.encode("utf-8")).decode("ascii")
-              print("\n=== FIXTURE-BASE64 Anfang (%d Zeichen Quelltext) ===" % len(cut))
-              for i in range(0, len(blob), 200):
-                  print(blob[i:i + 200])
-              print("=== FIXTURE-BASE64 Ende ===")
-          else:
-              print("\nKein Anker gefunden, Seite vermutlich eine Bot-Sperre.")
-              print(repr(html[:1500]))
+              raise SystemExit("kein Anker in der Seite, vermutlich Bot-Sperre")
+
+          head = html[:1200]
+          body = html[max(0, anchor - 4000):anchor + 24000]
+          cut = head + "\n<!-- gekuerzt fuer die Fixture -->\n" + body
+
+          # Tokens und Sitzungskennungen schwaerzen.
+          for key in ("visitorData", "ID_TOKEN", "INNERTUBE_API_KEY", "sessionId",
+                      "datasyncId", "delegatedSessionId", "serializedExperimentIds",
+                      "VISITOR_DATA", "eventId", "csn"):
+              cut = re.sub(r'("%s"\s*:\s*")[^"]*(")' % key, r"\1GESCHWAERZT\2", cut)
+          cut = re.sub(r"(?i)(set-cookie)[^\n]*", r"\1: GESCHWAERZT", cut)
+
+          out = pathlib.Path("tests/fixtures/youtube_about_2026-09-05.html")
+          out.parent.mkdir(parents=True, exist_ok=True)
+          out.write_text(cut, encoding="utf-8")
+          print("Fixture:", out, len(cut), "Zeichen")
+
+          # Kompakte Uebersicht fuer das Log, damit die Zielzahl sichtbar ist.
+          print("\n--- Kandidaten fuer die Kanal-Views ---")
+          for m in list(re.finditer(r'"viewCountText"\s*:\s*("[^"]{0,60}"|\{[^}]{0,120}\})', cut))[:6]:
+              print(repr(m.group(0)))
+          for m in list(re.finditer(r'"(subscriberCountText|videoCountText|joinedDateText)"\s*:\s*("[^"]{0,60}"|\{[^}]{0,160}\})', cut))[:6]:
+              print(repr(m.group(0)))
+          print("\n--- erste sechs 'views' im gekuerzten Ausschnitt ---")
+          for m in list(re.finditer(r"[\d.,]+\s*(?:views|Aufrufe)", cut))[:6]:
+              print(repr(cut[max(0, m.start() - 70):m.end() + 10]))
           PY
+
+      - name: Fixture committen
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/fixtures/youtube_about_2026-09-05.html
+          git commit -m "Setup: YouTube-Fixture vom Runner geholt" || echo "nichts zu committen"
+          git push origin HEAD:claude/briefing-h9gjow
