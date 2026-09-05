@@ -1,15 +1,1 @@
-
-Tab videos: 2 Seiten, 53829 Zeichen
-   'views': ['77', '137,317']
-   Aufrufe-Muster: ['"77 views"', '"137,317 views"']
-
-Tab shorts: 2 Seiten, 750841 Zeichen
-   'views': ['342', '509', '569', '354', '357', '1.1K', '4.7K', '1.1K', '1.4K', '501', '1.4K', '1K']
-   Aufrufe-Muster: ['"342 views"', '"509 views"', '"569 views"', '"354 views"', '"357 views"', '"1.1K views"']
-
-Aufruf-Angaben gesamt: 98
-Summe ueber alle Seiten: 273290
-Abos laut Header: ['583', '583']
-Videos laut Header: ['97']
-Fixture videos: 42475 Bytes, Summe Seite 1: 77
-Fixture shorts: 369035 Bytes, Summe Seite 1: 99622
+Live-Abruf get_youtube: {'f': 583, 'v': 273290}
