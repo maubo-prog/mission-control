@@ -40,7 +40,7 @@ Du bist ein erfahrener Senior-Engineer und richtest ein sehr kleines Repository 
 - Bekannte Schwächen (nur dokumentieren, in dieser Session nicht fixen): YouTube-Views falsch (Regex greift ein einzelnes Video), Instagram immer null, TikTok-Likes seit 12.08. auf 100er gerundet, TikTok-Ausfälle am 23.08. und 28.08. ohne Alarm, kein `.gitignore`, keine Tests.
 - Vorhandene Claude-Konfiguration im Repo: keine. Kein `CLAUDE.md`, keine Skills, keine Hooks. Eine `.claude/settings.local.json` kann von der Web-Umgebung angelegt sein; sie ist global git-ignoriert und bleibt unangetastet.
 - Sandbox hat Python 3.11, aber kein `gh`; CI nutzt Python 3.12. Keine 3.12-only-Syntax. GitHub-Aktionen laufen auf dem Web über die GitHub-MCP-Tools (in meinen Web-Sessions ist der GitHub-MCP-Server verbunden, prüfe das mit `/mcp` oder an der Tool-Liste), in der CLI über `gh`.
-- Auf Konto-Ebene (claude.ai, in jeder Session synchronisiert) habe ich drei eigene Skills für die Videoproduktion: `spacefacts-motion-graphics` (SpaceMotion-Engine, Renderpipeline), `konkurrenz-video-forensik` (Videoanalyse mit OpenCV und ffmpeg) und `spacefacts-cover-design` (Cover, Thumbnails, Banner). Sie gehören zum zweiten Projekt, dem Produktionsordner `C:\Users\mauri\OneDrive\Tiktok\` auf meinem Windows-Rechner, der nicht auf GitHub liegt. In dieser Session nicht anfassen, keine Projekt-Skills mit gleichem oder ähnlichem Namen anlegen. In CLAUDE.md nur eine Zeile Verweis: gleiche Marke wie das Dashboard (Gelb #FFEC00 auf Tiefblau, Montserrat), Videoarbeit läuft über diese Konto-Skills und einen eigenen Auftrag (Teil B).
+- Auf Konto-Ebene (claude.ai, in jeder Session synchronisiert) habe ich vier eigene Skills für die Videoproduktion: `spacefacts-produktionsauftrag` (kompletter Produktionslauf von der Themenwahl bis zum Uploadplan), `spacefacts-motion-graphics` (SpaceMotion-Engine, Renderpipeline), `konkurrenz-video-forensik` (Videoanalyse im eingebauten Browser und offline mit OpenCV und ffmpeg) und `spacefacts-cover-design` (Cover, Thumbnails, Banner). Sie gehören zum zweiten Projekt, dem Produktionsordner `C:\Users\mauri\OneDrive\Tiktok\` auf meinem Windows-Rechner, der nicht auf GitHub liegt und in dem täglich automatisierte Aufgaben laufen. In dieser Session nicht anfassen, keine Projekt-Skills mit gleichem oder ähnlichem Namen anlegen. In CLAUDE.md nur eine Zeile Verweis: gleiche Marke wie das Dashboard (Gelb #FFEC00 auf Tiefblau, Montserrat), Videoarbeit läuft über diese Konto-Skills und einen eigenen Auftrag (Teil B).
 
 ---
 
@@ -429,7 +429,7 @@ Wenn irgendwo etwas nicht funktioniert, schreibe es in "Übersprungen" oder "Off
 
 ## So benutzt du Teil B
 
-Erst Teil A abschließen. Dann in der Claude Code CLI auf deinem Windows-Rechner starten, im Ordner `C:\Users\mauri\OneDrive\Tiktok`: `claude --model opus`. Nicht auf dem Web, der Ordner liegt nicht auf GitHub. Kopiere alles ab "Deine Rolle". Die Arbeitsregeln aus Teil A (kleine geprüfte Schritte, Deutsch, Zeilenbudgets, "(bitte prüfen: ...)" statt Behauptungen, Abschlussbericht im selben Format) gelten unverändert.
+Erst Teil A abschließen. Dann eine Session starten, deren Arbeitsverzeichnis der Ordner `C:\Users\mauri\OneDrive\Tiktok` ist: entweder die Claude Code CLI auf deinem Windows-Rechner (`claude --model opus` in diesem Ordner) oder die Claude-Desktop-App mit dem Ordner als Arbeitsordner, so wie du sie heute für die Produktion nutzt (dort erscheint der Ordner als `/sessions/<session>/mnt/Tiktok`). Nicht auf dem Web, der Ordner liegt nicht auf GitHub. Kopiere alles ab "Deine Rolle". Die Arbeitsregeln aus Teil A (kleine geprüfte Schritte, Deutsch, Zeilenbudgets, "(bitte prüfen: ...)" statt Behauptungen, Abschlussbericht im selben Format) gelten unverändert. Wichtigste Zusatzregel: In diesem Ordner läuft eine funktionierende Automation; nichts, was sie liest oder schreibt, wird in dieser Session verändert, und keine Regel darf ihr eine Rückfrage aufzwingen.
 
 ---
 
@@ -439,9 +439,10 @@ Du bist derselbe Senior-Engineer wie in Teil A und richtest jetzt mein zweites P
 
 ## Kontext (Annahmen aus meinen drei Konto-Skills; alles in Phase 0 prüfen)
 
-- Ordner (Windows, OneDrive-synchronisiert, kein Git): `_Doku\tools\` mit `spacemotion.py` (Motion-Graphics-Engine: cairo, PIL, numpy, OpenCV, ffmpeg), `video_forensik.py` (Schnitt-, Bewegungs-, Text- und Lautheitsmessung mit OpenCV und ffmpeg), `render_v76_82.py` (Render-Generator) und `demo\SpaceMotion_Demo.mp4`; `_Doku\Produktionsstandard_2.0.md` (Regeln mit Datum und Messquelle); `_Branding\fonts\Montserrat-*.ttf`; `_Konkurrenz\<kanal>\JJJJ-MM-TT_titel.mp4` und `_Konkurrenz\_forensik\_Vergleich.md`; `_render\words_LANG.json` (ElevenLabs-Wort-Timings); Videoprojekte mit `*_Skript.md` (9-Beat-Plan) und Nummern wie V84; Trendreports je Kalenderwoche.
+- Ordner (Windows, OneDrive-synchronisiert, kein Git): `_Doku\tools\` mit `spacemotion.py` (Motion-Graphics-Engine: cairo, PIL, numpy, OpenCV, ffmpeg), `video_forensik.py` (Offline-Messung eigener MP4s), `browser_forensik.js` und `forensik_vergleich.py` (Messung im eingebauten Browser, Vergleichstabelle), `render_v76_82.py` und `_Doku\build_v76_82.py` (Render und Captions), `demo\SpaceMotion_Demo.mp4`; `_Doku\Workflow-Uebersicht.md` (Spielregeln 1 bis 13) und `_Doku\Produktionsstandard_2.0.md` (Regeln mit Datum und Messquelle); `_Doku\Nachbarkanaele.md`; `_Branding\fonts\Montserrat-*.ttf`; `_Stock-Weltraum\*.mp4`; `_Konkurrenz\` mit `_forensik\` und `_forensik\browser\_Vergleich*.md`; `_Trends\Trends_*.md`; `_Reports\KPI-Report_*.md` und `Zahlen-Audit_*.md`; `Content-Index.md` (Videonummern), `Uploadplan.json` (Auto-Upload), `Automation-Log.md`, `tasks\lessons.md`; Videoprojekte als `NN_Thema\` mit `*_Skript.md` (9-Beat-Plan, `[GFX]`-Marker), `*_Plattform-Uploads.md` und `_render\words_LANG.json` (ElevenLabs-Wort-Timings).
 - Werkzeuge auf dem Rechner: Python mit den genannten Bibliotheken, ffmpeg und ffprobe. Ob `python` oder `python3`, ob PowerShell oder Git Bash: in Phase 0 feststellen.
-- Die drei Konto-Skills (`spacefacts-motion-graphics`, `konkurrenz-video-forensik`, `spacefacts-cover-design`) sind auf die claude.ai-Sandbox geschrieben (120 Sekunden je Bash-Aufruf, `/tmp` wird geleert, Fonts nach `~/.fonts` kopieren). In der CLI auf meinem Rechner gelten diese Grenzen nicht, die Windows-Pfade darin stimmen dort. Die Skills sind die Wissensbasis; Projekt-Skills dürfen sie ergänzen, nicht kopieren.
+- Die vier Konto-Skills (`spacefacts-produktionsauftrag`, `spacefacts-motion-graphics`, `konkurrenz-video-forensik`, `spacefacts-cover-design`) sind auf die Sandbox der Desktop-App geschrieben (120 Sekunden je Bash-Aufruf, `/tmp` wird geleert, Fonts nach `~/.fonts` kopieren, eingebauter Browser für TikTok und ElevenLabs). In der CLI auf meinem Rechner gelten diese Grenzen nicht, die Windows-Pfade darin stimmen dort. Die Skills sind die Wissensbasis und bleiben unverändert; Projekt-Skills dürfen sie ergänzen, nicht kopieren.
+- Automation: Es laufen geplante Aufgaben, die täglich in diesen Ordner schreiben (unter anderem ein Nachbarkanal-Task für Video-IDs und ein Seed-Task; beide protokollieren in `Automation-Log.md`), und der Auto-Upload liest `Uploadplan.json`. Diese Dateien, `Content-Index.md`, `tasks\` und die geplanten Aufgaben selbst werden in dieser Session weder geändert noch gelöscht.
 - Marke: Gelb #FFEC00 auf Tiefblau #05070F bis #0B1026, Montserrat, Zahlen im Bild als Ziffern in deutscher Schreibung, kein Emoji im Bild. Harte Produktionsregeln: Hook mit Schnitt oder deutlicher Bewegung in den ersten 3 Sekunden, kein Clip zweimal im selben Video, Voiceover auf -15 LUFS, 2 bis 4 Sekunden je Shot, Quellen-Badge im letzten Fünftel.
 
 ---
@@ -450,7 +451,8 @@ Du bist derselbe Senior-Engineer wie in Teil A und richtest jetzt mein zweites P
 
 - Ordnerbaum nur eine Ebene tief je Ordner, mit Größe je Medienordner in einer Zeile (PowerShell: `Get-ChildItem -Directory | ForEach-Object { "{0}`t{1:N0} MB" -f $_.Name, ((Get-ChildItem $_ -Recurse -File | Measure-Object Length -Sum).Sum / 1MB) }`; Git Bash: `du -sh */`). Keine Mediendatei und keine `words_*.json` öffnen.
 - `python --version` oder `python3 --version`, `ffmpeg -version`, `ffprobe -version`, `git --version`, `claude --version`. Prüfen, ob `bash` (Git Bash) verfügbar ist; davon hängt die Hook-Form ab.
-- Die drei Skripte in `_Doku\tools\` einmal komplett lesen, `Produktionsstandard_2.0.md` komplett lesen, sonst nichts. Kein Testrender in dieser Phase.
+- `_Doku\Workflow-Uebersicht.md` und `Produktionsstandard_2.0.md` komplett lesen, die Skripte in `_Doku\tools\` und `_Doku\build_v76_82.py` einmal komplett lesen, sonst nichts. `Content-Index.md`, `Uploadplan.json` und `Automation-Log.md` nur mit `tail -20` beziehungsweise `Get-Content -Tail 20` anschauen. Kein Testrender in dieser Phase.
+- Geplante Aufgaben, die auf den Ordner zugreifen, nur auflisten (Desktop-App, Bereich Routinen beziehungsweise lokale geplante Aufgaben), nichts ändern.
 
 Bericht: Ordnerbaum (max. 30 Zeilen), Größen, welche Annahmen oben nicht stimmen, welcher Interpreter und welche Shell.
 
@@ -476,11 +478,12 @@ Frage mich zuerst, bevor du etwas anlegst. Meine Vorgabe: Git nur für Skripte u
 ## Produktionsregeln                (die harten Regeln aus dem Kontext, je eine Zeile, mit Verweis auf Produktionsstandard_2.0.md als Quelle)
 ## Marke                            (Farben, Fonts, Ziffern, kein Emoji)
 ## Kontext-Hygiene                  (Inhalt siehe unten, max. 10 Zeilen)
-## Nicht anfassen ohne Rückfrage    (_Branding, fertige Videos, Produktionsstandard-Regeln ohne Messwert, die drei Konto-Skills)
+## Automation                       (welche geplanten Aufgaben täglich laufen und welche Dateien sie besitzen: Automation-Log.md, Uploadplan.json, Content-Index.md, tasks/)
+## Nicht anfassen ohne Rückfrage    (_Branding, fertige Videos, Produktionsstandard-Regeln ohne Messwert, die vier Konto-Skills, alles unter Automation)
 ## Konto-Skills                     (eine Zeile je Skill: wofür; sie sind die Wissensbasis, Projekt-Skills rufen nur Werkzeuge)
 ```
 
-Kontext-Hygiene (für Claude): Medien, `words_*.json` und Forensik-JSON nie mit Read öffnen; Dauer, Auflösung und Größe über `ffprobe -v error -show_entries format=duration,size:stream=width,height -of csv=p=0 <datei>`; Lautheit über `ffmpeg -i <datei> -af ebur128 -f null - 2>&1 | tail -12`; Forensik nur als `_forensik.md` lesen; Renders in Zeitfenstern (`r.render(out, t0, t1)`) und mit ffmpeg concat zusammensetzen; Frames zur Sichtprüfung als PNG mit `r.snapshot(t, png)` erzeugen und nur diese anschauen; Ausgaben mit `| tail -20` kürzen.
+Kontext-Hygiene (für Claude): Video- und Audiodateien, `words_*.json` und Forensik-JSON nie mit Read öffnen (PNG-Snapshots zur Sichtprüfung sind erlaubt); `Content-Index.md`, `Uploadplan.json` und `Automation-Log.md` nur per Grep oder `tail`; Dauer, Auflösung und Größe über `ffprobe -v error -show_entries format=duration,size:stream=width,height -of csv=p=0 <datei>`; Lautheit über `ffmpeg -i <datei> -af ebur128 -f null - 2>&1 | tail -12`; Forensik nur als `_forensik.md` lesen; Renders in Zeitfenstern (`r.render(out, t0, t1)`) und mit ffmpeg concat zusammensetzen; Frames zur Sichtprüfung als PNG mit `r.snapshot(t, png)` erzeugen und nur diese anschauen; Ausgaben mit `| tail -20` kürzen.
 
 Pfadgebundene Regeln in `.claude/rules/`, je maximal 15 Zeilen:
 - `tools.md` (`paths: ["_Doku/tools/**"]`): keine neuen Abhängigkeiten ohne Rückfrage; jede Änderung mit `py_compile` und einem 2-Sekunden-Testrender (`r.render(out, 0, 2)`) prüfen; Zahlenformatierung nur über `fmt_de`.
@@ -493,12 +496,12 @@ Prüfen: `wc -l` (oder PowerShell `Measure-Object -Line`) innerhalb der Budgets.
 
 ## Phase 3: `.claude/settings.json` und Hooks
 
-Dieselbe Struktur wie in Teil A, angepasst:
-- `allow`: `Bash(python -m py_compile:*)` und die `python3`-Variante, `Bash(python _Doku/tools/*)`, `Bash(ffprobe:*)`, `Bash(ffmpeg -i * -af ebur128 *)`, `Bash(git status:*)`, `Bash(git diff:*)`, `Bash(git log:*)`, `Bash(ls:*)`, `Bash(du -sh:*)`.
-- `ask`: `Bash(ffmpeg:*)` (jeder echte Render oder Schnitt), `Bash(python _Doku/tools/render_v76_82.py:*)`, alles, was in `_Konkurrenz` oder fertige Videoordner schreibt.
-- `deny`: `Read(**/*.mp4)`, `Read(**/*.mov)`, `Read(**/*.wav)`, `Read(**/*.mp3)`, `Read(**/*.png)`, `Read(**/*.jpg)`, `Read(_render/**)`, `Read(**/words_*.json)`, `Read(**/*_forensik.json)`, `Bash(rm -r*)`, `Bash(Remove-Item*)`, `Bash(del *)`.
-- Hook `PostToolUse` auf `Edit|Write`: nur für `*.py` `py_compile`, für `Produktionsstandard_2.0.md` prüfen, dass jede neue Regelzeile ein Datum enthält (Regex `20\d\d-\d\d-\d\d`), sonst Exit 2 mit Hinweis. Hook-Skript als `.ps1`, wenn Phase 0 keine `bash` gefunden hat; die Doku zeigt für Hooks beide Formen (bitte prüfen: Hook-Ausführung unter PowerShell auf deiner Version, Doku-Seite hooks, Abschnitt zu PowerShell).
-- Kein Stop-Hook, kein `SessionStart`-Hook.
+Vorsicht: In diesem Ordner laufen der Produktionsauftrag und geplante Aufgaben ohne manuelle Schritte. Jede `ask`- oder `deny`-Regel, die eine Datei oder einen Befehl trifft, den diese Läufe brauchen, würde sie stoppen. Deshalb nur Regeln, die die Automation nie berührt:
+- `allow`: `Bash(python -m py_compile:*)` und die `python3`-Variante, `Bash(python _Doku/tools/*)`, `Bash(python3 _Doku/tools/*)`, `Bash(python _Doku/build_v76_82.py:*)`, `Bash(python3 _Doku/build_v76_82.py:*)`, `Bash(ffmpeg:*)`, `Bash(ffprobe:*)`, `Bash(git status:*)`, `Bash(git diff:*)`, `Bash(git log:*)`, `Bash(ls:*)`, `Bash(du -sh:*)`, `Bash(tail:*)`, `Bash(grep:*)`.
+- `deny`: `Read(**/*.mp4)`, `Read(**/*.mov)`, `Read(**/*.wav)`, `Read(**/*.mp3)` (Video und Audio lassen sich mit Read ohnehin nicht sinnvoll lesen; PNG bleibt erlaubt, weil die Frame-Prüfung nach dem Render Snapshots anschaut), `Bash(rm -r*)`, `Bash(Remove-Item * -Recurse*)`, `Bash(rmdir /s*)`.
+- Kein `ask` für Render-, Upload- oder Automationsdateien. Der Schutz für `Uploadplan.json`, `Content-Index.md`, `Automation-Log.md` und `tasks\` steht in CLAUDE.md, nicht in den Permissions.
+- Hook `PostToolUse` auf `Edit|Write`: nur für `*.py` `py_compile`, für `Produktionsstandard_2.0.md` prüfen, dass jede neue Regelzeile ein Datum enthält (Regex `20\d\d-\d\d-\d\d`), sonst Exit 2 mit Hinweis. Für alle anderen Dateien sofort Exit 0; der Hook darf nie länger als 2 Sekunden laufen, damit die Automation nicht hängt. Hook-Skript als `.ps1`, wenn Phase 0 keine `bash` gefunden hat (bitte prüfen: Hook-Ausführung unter PowerShell auf deiner Version, Doku-Seite hooks, Abschnitt zu PowerShell).
+- Kein Stop-Hook, kein `SessionStart`-Hook. (bitte prüfen: ob die Desktop-App `.claude/settings.json` und Hooks aus dem Arbeitsordner liest; falls nicht, wirken die Regeln nur in der CLI.)
 
 Prüfen: JSON valide, Hook mit `echo '{"tool_input":{"file_path":"_Doku/tools/spacemotion.py"}}' | ...` simuliert, Exit-Codes im Bericht.
 
@@ -506,20 +509,21 @@ Prüfen: JSON valide, Hook mit `echo '{"tool_input":{"file_path":"_Doku/tools/sp
 
 ## Phase 4: Projekt-Skills (Ergänzung zu den Konto-Skills, keine Kopie, je max. 40 Zeilen)
 
+Kein `wochenbatch`- und kein `forensik`-Skill: das machen `spacefacts-produktionsauftrag` und `konkurrenz-video-forensik` bereits. Nur diese drei:
+
 | Skill | Zweck | Nur manuell |
 |---|---|---|
-| `wochenbatch` | Für eine Liste von `*_Skript.md`: Grafik-Beats bestimmen, Szenen in Zeitfenstern rendern, mit ffmpeg concat zusammensetzen, Lautheit prüfen, `video_forensik.py` auf das fertige Video, Bericht mit 3 Snapshot-Frames (Hook, Speicher-Fakt, End-CTA) und den Kennzahlen gegen die Zielwerte (mindestens 15 wahrnehmbare Schnitte pro Minute, Hook-Bewegung über 0,05, -15 LUFS). | ja |
-| `forensik-vergleich` | `video_forensik.py --vergleich <ordner>` ausführen, Tabelle und Delta zur eigenen Referenz in `_Konkurrenz\_forensik\_Vergleich.md` schreiben, für jede Abweichung ab Faktor 1,5 einen Regelvorschlag mit Messwert, Datum und Quelle formulieren. Ändert den Produktionsstandard nicht selbst. | nein |
-| `render-check` | Für ein fertiges Video: ffprobe-Zusammenfassung, Lautheit, Vergleich erster und letzter Frame (Loop-Schnitt) über zwei Snapshots, ohne das Video zu lesen. Ergebnis 10 Zeilen. | nein |
-| `handoff` und `briefing` | Wie in Teil A, angepasst auf diesen Ordner (`.claude/handoff.md`). | ja / nein |
+| `render-check` | Für ein fertiges Video: ffprobe-Zusammenfassung, Lautheit über `ebur128`, Vergleich erster und letzter Frame (Loop-Schnitt) über zwei Snapshots, ohne das Video zu lesen. Ergebnis 10 Zeilen. | nein |
+| `briefing` | Wie in Teil A, angepasst: `tail -20 Automation-Log.md`, letzte Zeilen von `Content-Index.md`, `git status` falls Git, dann nur die Dateien zur Aufgabe. | nein |
+| `handoff` | Wie in Teil A, schreibt `.claude/handoff.md` in diesem Ordner. `tasks/lessons.md` nicht anfassen, das gehört dem Produktionsauftrag. | ja |
 
-Jeder Skill nennt am Anfang, welcher Konto-Skill die Regeln liefert, und ruft nur Werkzeuge in fester Reihenfolge auf. `wochenbatch` bekommt `disable-model-invocation: true`.
+Jeder Skill nennt am Anfang, welcher Konto-Skill die Regeln liefert, und ruft nur Werkzeuge in fester Reihenfolge auf.
 
 ---
 
 ## Phase 5: Abschluss
 
-Checkliste wie in Teil A: JSON valide, Hook simuliert, `py_compile` auf die drei Tools, Zeilenbudgets, ein 2-Sekunden-Testrender mit `spacemotion.py` (fragt nach, ist gewollt) und ein `render-check` auf die Demo-Datei. Bericht im Format aus Teil A. Kein `git init` und kein Commit, bevor ich Phase 1 entschieden habe. Beginne jetzt mit Phase 0.
+Checkliste wie in Teil A: JSON valide, Hook simuliert, `py_compile` auf die Tools, Zeilenbudgets, ein 2-Sekunden-Testrender mit `spacemotion.py` und ein `render-check` auf die Demo-Datei. Abnahmetest für die Automation: Ich starte danach selbst einen Produktionsauftrag mit einem Video; entsteht dabei eine neue Rückfrage oder ein Hook-Fehler, wird die verursachende Regel entfernt, nicht die Automation angepasst. Bericht im Format aus Teil A. Kein `git init` und kein Commit, bevor ich Phase 1 entschieden habe. Beginne jetzt mit Phase 0.
 
 ---
 
@@ -570,9 +574,9 @@ Das Setup hält den Creator-Teil bewusst klein (`/wochenbericht`). Wenn du mehr 
 
 ### Zweites Projekt: Videoproduktion und die drei Konto-Skills
 
-- **Sandbox-Hinweise aus den Konto-Skills auslagern**: `spacefacts-motion-graphics` und `konkurrenz-video-forensik` enthalten Regeln, die nur für die claude.ai-Sandbox gelten (120 Sekunden je Bash-Aufruf, `/tmp` wird geleert, Fonts nach `~/.fonts`). In einer Claude-Code-Session auf deinem Rechner verwirren sie und kosten Kontext. Verschiebe sie in einen eigenen Abschnitt "Nur in der claude.ai-Sandbox" am Ende des jeweiligen Skills; der `skill-creator`-Skill, den du aktiv hast, kann das mit dir zusammen umbauen und die Beschreibung auf Trigger-Genauigkeit testen.
+- **Vier Konto-Skills, eine Umgebung**: Die Sandbox der Desktop-App (Ordner unter `/sessions/<session>/mnt/Tiktok`, eingebauter Browser, 120 Sekunden je Bash-Aufruf) ist deine Hauptumgebung für die Produktion. Halte die Sandbox-Regeln in jedem Skill in einem klar benannten Abschnitt am Anfang zusammen und ergänze einen Satz, was in der Claude Code CLI anders ist (kein Zeitlimit, Windows-Pfade, kein eingebauter Browser). Der `skill-creator`-Skill, den du aktiv hast, kann die vier Skills gemeinsam umbauen und die Beschreibungen auf Trigger-Genauigkeit testen. `spacefacts-produktionsauftrag` und `konkurrenz-video-forensik` überschneiden sich bei der Forensik-Abnahme; ein Verweis statt Doppelung spart bei jedem Lauf Kontext.
 - **Produktionsstandard versionieren**: `_Doku/Produktionsstandard_2.0.md` ist deine wichtigste Datei und liegt nur in OneDrive. Als privates Repo (Teil B, Phase 1) bekommt jede Regel eine Historie, und Claude Code auf dem Web kann sie lesen, ohne dass du am Rechner sitzt.
-- **Dashboard und Produktion verbinden**: Ein Posting-Log (`docs/posts.json` in `mission-control`, Felder Datum, Plattform, Videonummer wie V84, Views nach 24 Stunden und 7 Tagen) verknüpft die Forensik-Kennzahlen deiner Videos mit den echten Zahlen. Erst damit lässt sich prüfen, ob die Regeln des Produktionsstandards (Schnitte pro Minute, Hook-Bewegung) wirklich mit Views korrelieren. `/wochenbericht` kann das Log dann mit auswerten.
+- **Dashboard und Produktion verbinden**: `Content-Index.md`, `Uploadplan.json` und die KPI-Reports kennen jedes Video mit Nummer und Datum, `mission-control` kennt nur die Kanalsumme. Ein kleiner Export (`docs/posts.json`: Datum, Plattform, Videonummer, Views nach 24 Stunden und 7 Tagen), den der Produktionsauftrag am Ende schreibt und der per Commit ins Dashboard-Repo gelangt, verknüpft die Forensik-Kennzahlen deiner Videos mit den echten Zahlen. Erst damit lässt sich prüfen, ob die Regeln des Produktionsstandards (Schnitte pro Minute, Hook-Bewegung) wirklich mit Views korrelieren. `/wochenbericht` kann das Log dann mit auswerten.
 - **Medien nie in den Kontext**: Die `deny`-Regeln für `Read` auf Medien und `words_*.json` (Teil B) sind der wichtigste Token-Sparer für dieses Projekt. Ein einziges gelesenes Timing-JSON oder Forensik-JSON kann mehr Kontext kosten als das ganze `mission-control`-Repo.
 - **Cover-Skill und Dashboard-Optik**: `spacefacts-cover-design` und `docs/index.html` nutzen dieselbe Marke (Gelb #FFEC00, Tiefblau, Montserrat). Ein gemeinsames `brand.md` (Farben, Fonts, Abstände, Beispiel-Cover) in `_Branding` spart in beiden Projekten Erklärungen und gehört als `@`-Import nur in die CLAUDE.md des Produktionsordners.
 
