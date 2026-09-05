@@ -1,5 +1,5 @@
-# TEMPORAER: legt die Videos-Tab-Antwort als Fixture ab, dazu die Summe der
-# Aufrufe ueber alle Seiten als Sollwert. Wird vor dem Pull Request geloescht.
+# TEMPORAER: prueft den neuen YouTube-Abruf einmal gegen die echte Seite,
+# ohne docs/data.json anzufassen. Wird danach geloescht.
 name: Fixture holen (temporaer)
 
 on:
@@ -18,101 +18,22 @@ jobs:
         with:
           ref: claude/briefing-h9gjow
 
-      - name: Videos-Antwort holen
+      - name: Echten Abruf pruefen
         run: |
           python3 - <<'PY'
-          import json
           import pathlib
-          import re
-          import urllib.request
+          import update
 
-          UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
-          HEAD = {"User-Agent": UA, "Accept-Language": "en-US,en;q=0.9",
-                  "Cookie": "CONSENT=YES+1"}
-          report = []
-
-          def say(*parts):
-              line = " ".join(str(p) for p in parts)
-              report.append(line)
-              print(line)
-
-          req = urllib.request.Request("https://www.youtube.com/@spacefactswow?hl=en", headers=HEAD)
-          with urllib.request.urlopen(req, timeout=30) as r:
-              html = r.read().decode("utf-8", "ignore")
-          api_key = re.search(r'"INNERTUBE_API_KEY":"([^"]+)"', html).group(1)
-          channel = re.search(r'"(?:externalId|browseId)":"(UC[\w-]{20,})"', html).group(1)
-          version = re.search(r'"INNERTUBE_CLIENT_VERSION":"([^"]+)"', html).group(1)
-
-          def browse(payload):
-              body = {"context": {"client": {"clientName": "WEB", "clientVersion": version,
-                                             "hl": "en", "gl": "US"}}}
-              body.update(payload)
-              req = urllib.request.Request(
-                  "https://www.youtube.com/youtubei/v1/browse?key=" + api_key + "&prettyPrint=false",
-                  data=json.dumps(body).encode("utf-8"),
-                  headers=dict(HEAD, **{"Content-Type": "application/json"}))
-              with urllib.request.urlopen(req, timeout=30) as r:
-                  return r.read().decode("utf-8", "ignore")
-
-          TABS = {"videos": "EgZ2aWRlb3PyBgQKAjoA", "shorts": "EgZzaG9ydHPyBgUKA5oBAA=="}
-          seiten_je_tab = {}
-          for tab, params in TABS.items():
-              seiten = []
-              raw = browse({"browseId": channel, "params": params})
-              seiten.append(raw)
-              for _ in range(9):
-                  m = re.search(r'"continuationCommand":\{"token":"([^"]+)"', raw)
-                  if not m:
-                      break
-                  raw = browse({"continuation": m.group(1)})
-                  seiten.append(raw)
-              seiten_je_tab[tab] = seiten
-              text = "".join(seiten)
-              say("\nTab %s: %d Seiten, %d Zeichen" % (tab, len(seiten), len(text)))
-              say("   'views':", re.findall(r'"([\d.,]+[KMB]?) views"', text)[:12])
-              say("   Aufrufe-Muster:", re.findall(r'"[^"]{0,25}[\d.,]+[KMB]? (?:views|Aufrufe)[^"]{0,15}"', text)[:6])
-
-          seiten = seiten_je_tab["videos"] + seiten_je_tab["shorts"]
-          alle = re.findall(r'"([\d.,]+[KMB]?) views"', "".join(seiten))
-          say("\nAufruf-Angaben gesamt:", len(alle))
-
-          def compact(s):
-              m = re.match(r"([\d.,]+)\s*([KMB]?)", s.strip(), re.I)
-              if not m:
-                  return 0
-              num, suf = m.group(1), m.group(2).upper()
-              if suf:
-                  return int(float(num.replace(",", "")) * {"K": 1e3, "M": 1e6, "B": 1e9}[suf])
-              return int(re.sub(r"[^\d]", "", num) or 0)
-
-          summe = sum(compact(a) for a in alle)
-          say("Summe ueber alle Seiten:", summe)
-          say("Abos laut Header:", re.findall(r'"([\d.,]+[KMB]?) subscribers"', seiten[0])[:2])
-          say("Videos laut Header:", re.findall(r'"([\d.,]+[KMB]?) videos"', seiten[0])[:2])
-
-          # Je Tab die erste Seite als Fixture, Tokens geschwaerzt.
-          d = pathlib.Path("tests/fixtures")
-          d.mkdir(parents=True, exist_ok=True)
-          for tab, seiten_tab in seiten_je_tab.items():
-              red = seiten_tab[0]
-              for key in ("visitorData", "trackingParams", "clickTrackingParams", "sessionId",
-                          "datasyncId", "ID_TOKEN", "token", "params", "serializedShareEntity"):
-                  red = re.sub(r'("%s":")[^"]*(")' % key, r"\1GESCHWAERZT\2", red)
-              ziel = d / ("youtube_%s_2026-09-05.json" % tab)
-              ziel.write_text(json.dumps(json.loads(red), ensure_ascii=False,
-                                         separators=(",", ":")), encoding="utf-8")
-              teil = sum(compact(a) for a in re.findall(r'"([\d.,]+[KMB]?) views"', red))
-              say("Fixture %s: %d Bytes, Summe Seite 1: %d" % (tab, ziel.stat().st_size, teil))
-          (d / "_probe_bericht.txt").write_text("\n".join(report), encoding="utf-8")
+          werte = update.get_youtube("spacefactswow")
+          zeile = "Live-Abruf get_youtube: %r" % (werte,)
+          print(zeile)
+          pathlib.Path("tests/fixtures/_probe_bericht.txt").write_text(zeile, encoding="utf-8")
           PY
 
-      - name: Fixture committen
+      - name: Ergebnis committen
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git rm -q --cached --ignore-unmatch tests/fixtures/youtube_about_2026-09-05.json
-          rm -f tests/fixtures/youtube_about_2026-09-05.json
-          git add -A tests/fixtures/
-          git commit -m "Setup: Videos-Fixture vom Runner" || echo "nichts zu committen"
+          git add -A tests/fixtures/_probe_bericht.txt
+          git commit -m "Setup: Ergebnis des Live-Abrufs" || echo "nichts zu committen"
           git push origin HEAD:claude/briefing-h9gjow

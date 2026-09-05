@@ -80,20 +80,96 @@ def get_tiktok(h):
     return out
 
 
+# Die Kanalseite nennt die Gesamtaufrufe nicht mehr, nur noch die Aufrufe je
+# Video. Deshalb werden Videos- und Shorts-Tab durchgeblaettert und summiert.
+YT_TABS = (("videos", "EgZ2aWRlb3PyBgQKAjoA"), ("shorts", "EgZzaG9ydHPyBgUKA5oBAA=="))
+YT_MAX_PAGES = 10
+
+
+def yt_config(html):
+    """Liest API-Schluessel, Kanal-ID und Client-Version aus der Kanalseite."""
+    key = re.search(r'"INNERTUBE_API_KEY"\s*:\s*"([^"]+)"', html)
+    channel = re.search(r'"(?:externalId|browseId)"\s*:\s*"(UC[\w-]{20,})"', html)
+    version = re.search(r'"INNERTUBE_CLIENT_VERSION"\s*:\s*"([^"]+)"', html)
+    if not (key and channel and version):
+        return None
+    return {"key": key.group(1), "channel": channel.group(1), "version": version.group(1)}
+
+
+def yt_browse(cfg, payload, timeout=25):
+    """Ein Aufruf der oeffentlichen Browse-Schnittstelle, gibt den Rohtext zurueck."""
+    body = {"context": {"client": {"clientName": "WEB", "clientVersion": cfg["version"],
+                                   "hl": "en", "gl": "US"}}}
+    body.update(payload)
+    req = urllib.request.Request(
+        "https://www.youtube.com/youtubei/v1/browse?key=" + cfg["key"] + "&prettyPrint=false",
+        data=json.dumps(body).encode("utf-8"),
+        headers={"User-Agent": UA, "Content-Type": "application/json",
+                 "Accept-Language": "en-US,en;q=0.9", "Cookie": "CONSENT=YES+1"})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read().decode("utf-8", "ignore")
+
+
+def yt_views(raw):
+    """Alle Aufrufzahlen einer Antwort. '1.1K views' zaehlt gerundet mit."""
+    werte = [compact(s) for s in re.findall(r'"([\d.,]+[KMB]?) views"', raw)]
+    return [w for w in werte if w is not None]
+
+
+def yt_continuation(raw):
+    """Token fuer die naechste Seite, None am Ende der Liste."""
+    m = re.search(r'"continuationCommand"\s*:\s*\{"token"\s*:\s*"([^"]+)"', raw)
+    return m.group(1) if m else None
+
+
+def yt_subscribers(raw):
+    return grab([r'"([\d.,]+[KMB]?) subscribers"',
+                 r'([\d.,]+[KMB]?)\s*(?:subscribers|Abonnenten)',
+                 r'"subscriberCountText"[^}]*?"simpleText"\s*:\s*"([\d.,KMB]+)'], raw)
+
+
 def get_youtube(h):
     out = {"f": None, "v": None}
-    for getter in (lambda: fetch("https://www.youtube.com/@" + h + "/about"),
-                   lambda: via_jina("https://www.youtube.com/@" + h + "/about")):
+    html = ""
+    for getter in (lambda: fetch("https://www.youtube.com/@" + h + "?hl=en"),
+                   lambda: via_jina("https://www.youtube.com/@" + h)):
         try:
             html = getter()
-        except Exception:
-            continue
-        f = grab([r'([\d.,]+[KMB]?)\s*(?:subscribers|Abonnenten)',
-                  r'"subscriberCountText"[^}]*?"simpleText"\s*:\s*"([\d.,KMB]+)'], html)
-        v = grab([r'([\d.,]+)\s*(?:views|Aufrufe)'], html)
-        if f is not None:
-            out = {"f": f, "v": v}
             break
+        except Exception as e:
+            print("YouTube: Kanalseite nicht erreichbar:", repr(e))
+    if html:
+        out["f"] = yt_subscribers(html)
+
+    cfg = yt_config(html) if html else None
+    if not cfg:
+        print("YouTube: kein Zugang zur Browse-Schnittstelle, Aufrufe bleiben leer")
+        return out
+
+    summe, gezaehlt = 0, 0
+    for tab, params in YT_TABS:
+        payload = {"browseId": cfg["channel"], "params": params}
+        for seite in range(YT_MAX_PAGES):
+            try:
+                raw = yt_browse(cfg, payload)
+            except Exception as e:
+                # Eine halbe Summe waere schlechter als gar keine.
+                print("YouTube: %s Seite %d fehlgeschlagen: %r" % (tab, seite + 1, e))
+                return out
+            werte = yt_views(raw)
+            summe += sum(werte)
+            gezaehlt += len(werte)
+            if out["f"] is None:
+                out["f"] = yt_subscribers(raw)
+            token = yt_continuation(raw)
+            if not token:
+                break
+            payload = {"continuation": token}
+
+    if gezaehlt:
+        out["v"] = summe
+    else:
+        print("YouTube: keine Aufrufzahlen in der Antwort gefunden")
     return out
 
 
