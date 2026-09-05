@@ -62,7 +62,9 @@ Eintrag in `docs/data.json`. Nur nach Rueckfrage, danach immer `git checkout doc
 
 ## Bekannte Schwaechen (Stand 2026-09-04)
 
-- YouTube-Views sind falsch: die Regex greift die Aufrufe eines einzelnen Videos, nicht die Kanalsumme.
+- YouTube-Views sind eine Summe, keine echte Kanalzahl: YouTube nennt die Gesamtaufrufe nirgends mehr,
+  `get_youtube` addiert deshalb die Aufrufe aus Videos- und Shorts-Tab. Gerundete Angaben wie "1.1K"
+  gehen gerundet in die Summe ein, der Wert ist also auf etwa ein Prozent genau.
 - Instagram-Follower sind durchgaengig null, der JSON-Endpunkt und die Profilseite liefern nichts mehr.
 - TikTok-Likes werden seit 12.08. auf volle 100 gerundet geliefert.
 - TikTok-Ausfaelle am 23.08. und 28.08., ohne Alarm bemerkt niemand so etwas.
