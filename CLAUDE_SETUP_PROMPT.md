@@ -435,9 +435,9 @@ Erst Teil A abschließen. Dann eine Session starten, deren Arbeitsverzeichnis de
 
 ## Deine Rolle und das Ziel
 
-Du bist derselbe Senior-Engineer wie in Teil A und richtest jetzt mein zweites Projekt für Claude Code ein: den Produktionsordner für die Kurzvideos von `@spacefactswow`. Ziel: Renders, Forensik und Cover sollen aus Claude Code heraus laufen, ohne dass Medien oder große JSON-Dateien in den Kontext geraten, und ohne dass die drei vorhandenen Konto-Skills angefasst werden. Motto wie in Teil A: solide und schlank.
+Du bist derselbe Senior-Engineer wie in Teil A und richtest jetzt mein zweites Projekt für Claude Code ein: den Produktionsordner für die Kurzvideos von `@spacefactswow`. Ziel: Renders, Forensik und Cover sollen aus Claude Code heraus laufen, ohne dass Medien oder große JSON-Dateien in den Kontext geraten, und ohne dass die vier vorhandenen Konto-Skills angefasst werden. Motto wie in Teil A: solide und schlank.
 
-## Kontext (Annahmen aus meinen drei Konto-Skills; alles in Phase 0 prüfen)
+## Kontext (Annahmen aus meinen vier Konto-Skills; alles in Phase 0 prüfen)
 
 - Ordner (Windows, OneDrive-synchronisiert, kein Git): `_Doku\tools\` mit `spacemotion.py` (Motion-Graphics-Engine: cairo, PIL, numpy, OpenCV, ffmpeg), `video_forensik.py` (Offline-Messung eigener MP4s), `browser_forensik.js` und `forensik_vergleich.py` (Messung im eingebauten Browser, Vergleichstabelle), `render_v76_82.py` und `_Doku\build_v76_82.py` (Render und Captions), `demo\SpaceMotion_Demo.mp4`; `_Doku\Workflow-Uebersicht.md` (Spielregeln 1 bis 13) und `_Doku\Produktionsstandard_2.0.md` (Regeln mit Datum und Messquelle); `_Doku\Nachbarkanaele.md`; `_Branding\fonts\Montserrat-*.ttf`; `_Stock-Weltraum\*.mp4`; `_Konkurrenz\` mit `_forensik\` und `_forensik\browser\_Vergleich*.md`; `_Trends\Trends_*.md`; `_Reports\KPI-Report_*.md` und `Zahlen-Audit_*.md`; `Content-Index.md` (Videonummern), `Uploadplan.json` (Auto-Upload), `Automation-Log.md`, `tasks\lessons.md`; Videoprojekte als `NN_Thema\` mit `*_Skript.md` (9-Beat-Plan, `[GFX]`-Marker), `*_Plattform-Uploads.md` und `_render\words_LANG.json` (ElevenLabs-Wort-Timings).
 - Werkzeuge auf dem Rechner: Python mit den genannten Bibliotheken, ffmpeg und ffprobe. Ob `python` oder `python3`, ob PowerShell oder Git Bash: in Phase 0 feststellen.
@@ -572,7 +572,7 @@ Das Setup hält den Creator-Teil bewusst klein (`/wochenbericht`). Wenn du mehr 
 - Fast-Modus lohnt nie: das Dashboard aktualisiert sich einmal täglich, Latenz ist egal.
 - Wenn du später doch externe Token-Skills probieren willst: `rescue-tokens` aus `valorisa/Claude-Skills` als Projekt-Skill kopieren (kein MCP) und den Effekt per `/context` vorher/nachher messen; `context-mode` als MCP-Server nur, wenn du mehrere große Repos hast.
 
-### Zweites Projekt: Videoproduktion und die drei Konto-Skills
+### Zweites Projekt: Videoproduktion und die vier Konto-Skills
 
 - **Vier Konto-Skills, eine Umgebung**: Die Sandbox der Desktop-App (Ordner unter `/sessions/<session>/mnt/Tiktok`, eingebauter Browser, 120 Sekunden je Bash-Aufruf) ist deine Hauptumgebung für die Produktion. Halte die Sandbox-Regeln in jedem Skill in einem klar benannten Abschnitt am Anfang zusammen und ergänze einen Satz, was in der Claude Code CLI anders ist (kein Zeitlimit, Windows-Pfade, kein eingebauter Browser). Der `skill-creator`-Skill, den du aktiv hast, kann die vier Skills gemeinsam umbauen und die Beschreibungen auf Trigger-Genauigkeit testen. `spacefacts-produktionsauftrag` und `konkurrenz-video-forensik` überschneiden sich bei der Forensik-Abnahme; ein Verweis statt Doppelung spart bei jedem Lauf Kontext.
 - **Produktionsstandard versionieren**: `_Doku/Produktionsstandard_2.0.md` ist deine wichtigste Datei und liegt nur in OneDrive. Als privates Repo (Teil B, Phase 1) bekommt jede Regel eine Historie, und Claude Code auf dem Web kann sie lesen, ohne dass du am Rechner sitzt.
