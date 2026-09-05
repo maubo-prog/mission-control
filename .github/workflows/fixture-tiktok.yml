@@ -1,0 +1,95 @@
+# TEMPORAER: prueft, warum TikTok-Likes seit 12.08. gerundet ankommen, und legt
+# Bericht und Fixture auf diesem Branch ab. Wird vor dem PR geloescht.
+name: TikTok-Fixture (temporaer)
+
+on:
+  push:
+    branches:
+      - claude/briefing-h9gjow
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tiktok-fixture
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/briefing-h9gjow
+
+      - name: Seite holen und Parser vergleichen
+        run: |
+          python3 - <<'PY'
+          import pathlib
+          import re
+          import update
+
+          report = []
+
+          def say(*p):
+              line = " ".join(str(x) for x in p)
+              report.append(line)
+              print(line)
+
+          H = "spacefactswow"
+          html = ""
+          for label, getter in (("direkt", lambda: update.fetch("https://www.tiktok.com/@" + H)),
+                                ("lese-proxy", lambda: update.via_jina("https://www.tiktok.com/@" + H))):
+              try:
+                  html = getter()
+                  say("[%s] OK, Laenge %d" % (label, len(html)))
+                  break
+              except Exception as e:
+                  say("[%s] FEHLER %r" % (label, e))
+          if not html:
+              raise SystemExit("keine Seite")
+
+          say("UNIVERSAL_DATA vorhanden:", "__UNIVERSAL_DATA_FOR_REHYDRATION__" in html,
+              " SIGI_STATE vorhanden:", "SIGI_STATE" in html)
+          for key in ("followerCount", "heartCount", "heart", "videoCount", "diggCount", "followingCount"):
+              hits = re.findall(r'"%s"\s*:\s*("?[\d.,KMB]+"?)' % key, html)
+              say("JSON %-15s %d Treffer, erste: %s" % (key, len(hits), hits[:4]))
+          say("Text Follower:", re.findall(r'([\d.,]+[KMB]?)\s*Follower', html)[:4])
+          say("Text Likes:   ", re.findall(r'([\d.,]+[KMB]?)\s*Likes', html)[:4])
+          say("Aktueller Parser get_tiktok:", update.get_tiktok(H))
+
+          m = re.search(r'"stats"\s*:\s*\{[^}]{0,400}\}', html)
+          say("stats-Block:", m.group(0)[:400] if m else "keiner")
+          m2 = re.search(r'"statsV2"\s*:\s*\{[^}]{0,400}\}', html)
+          say("statsV2-Block:", m2.group(0)[:400] if m2 else "keiner")
+
+          # Fixture: Ausschnitt um den ersten Stats-Treffer, Tokens geschwaerzt.
+          anchor = -1
+          for key in ("statsV2", '"stats"', "followerCount", "heartCount"):
+              anchor = html.find(key)
+              if anchor >= 0:
+                  break
+          if anchor >= 0:
+              cut = html[max(0, anchor - 6000):anchor + 30000]
+              for key in ("msToken", "ttwid", "odinId", "deviceId", "webIdLastTime", "abTestVersion",
+                          "csrfToken", "sessionid", "verifyFp", "s_v_web_id", "tt_csrf_token", "uid"):
+                  cut = re.sub(r'("%s"\s*:\s*")[^"]*(")' % key, r"\1GESCHWAERZT\2", cut)
+              cut = re.sub(r"(?i)(set-cookie:)[^\n]*", r"\1 GESCHWAERZT", cut)
+              d = pathlib.Path("tests/fixtures")
+              d.mkdir(parents=True, exist_ok=True)
+              ziel = d / "tiktok_profile_2026-09-05.html"
+              ziel.write_text(cut, encoding="utf-8")
+              say("Fixture:", ziel, ziel.stat().st_size, "Bytes")
+          else:
+              say("Kein Stats-Anker, Anfang der Seite:", repr(html[:600]))
+          pathlib.Path("tests/fixtures/_probe_tiktok.txt").write_text("\n".join(report), encoding="utf-8")
+          PY
+
+      - name: Bericht committen
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A tests/fixtures/
+          git commit -m "Setup: TikTok-Probe vom Runner" || echo "nichts zu committen"
+          git push origin HEAD:claude/briefing-h9gjow
