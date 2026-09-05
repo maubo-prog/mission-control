@@ -1,7 +1,4 @@
 {
-  "enabledPlugins": {
-    "commit-commands@claude-plugins-official": true
-  },
   "permissions": {
     "allow": [
       "Bash(python3 -m py_compile:*)",

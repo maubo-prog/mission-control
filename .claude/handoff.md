@@ -18,7 +18,7 @@ Schreiben nur ueber `/handoff` (ersetzt den Inhalt, haengt nichts an). Maximal 4
 - Manuelle Schritte stehen im Abschlussbericht: Ordner als vertrauenswuerdig bestaetigen,
   Branch-Schutz Variante A auf main, Label `zahlen`, lokale CLI-Befehle aus dem Spickzettel.
 - Nicht angefasst: YouTube-Views falsch, Instagram null, TikTok-Likes gerundet. Fixes ueber `/scraper-fix`.
-- Nicht geprueft: ob `enabledPlugins` in einer Projekt-Settings auf dem Web greift.
+- Manuell noch offen: Branch-Schutz Variante A auf main, Label `zahlen`, lokale CLI-Befehle.
 
 ## Naechster Schritt
 
@@ -36,5 +36,5 @@ Schreiben nur ueber `/handoff` (ersetzt den Inhalt, haengt nichts an). Maximal 4
 
 ## Branch und offene PRs
 
-- Branch: claude/setup-repo-claude-code-bm1zhu
-- PR: https://github.com/maubo-prog/mission-control/pull/2 (offen, Merge macht der Betreiber)
+- Branch: claude/setup-repo-claude-code-bm1zhu, frisch von main nach dem Merge von PR 2
+- Das Setup liegt auf main. Folge-PR entfernt `enabledPlugins`, der Skill `/pr` deckt das ab.
