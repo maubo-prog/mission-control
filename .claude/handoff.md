@@ -6,35 +6,35 @@ Schreiben nur ueber `/handoff` (ersetzt den Inhalt, haengt nichts an). Maximal 4
 
 ## Erledigt
 
-- Setup fuer Claude Code angelegt: `CLAUDE.md`, `.claude/rules/` (3), `.claude/settings.json`,
-  `.claude/hooks/` (3), `.claude/skills/` (9), `.claude/agents/pruefer.md`, `CHEATSHEET.md`, `routines.md`.
-- Hilfsskripte `tools/check_data.py`, `check_html.py`, `stats.py`, nur Standardbibliothek.
-- Tests `tests/test_update.py` (7 Faelle zu `compact`, `merge`, `grab`), kein Netzzugriff.
-- GitHub: `ci.yml`, `watchdog.yml` (Ausfall-Alarm, kostenlos, legt Issue an), `dependabot.yml`,
-  `pull_request_template.md`, `ISSUE_TEMPLATE/zahlen.yml`, `.gitignore`, README-Abschnitt.
+- YouTube-Views (`update.py`): YouTube nennt die Kanalsumme nirgends mehr. `get_youtube` blaettert
+  Videos- und Shorts-Tab ueber die Browse-Schnittstelle und summiert. Laden und Parsen getrennt
+  (`yt_config`, `yt_browse`, `yt_views`, `yt_continuation`, `yt_subscribers`). PR 6.
+- TikTok-Likes (`update.py`): `parse_tiktok` liest `statsV2` (exakt) vor `stats` (gerundet). PR 8.
+- Instagram: vom Runner geprueft, 429 und 403 ueberall, Embed ohne Zahl. Bleibt manuell, `CLAUDE.md`. PR 7.
+- Hinweistexte in `tools/stats.py` und `.claude/skills/wochenbericht/SKILL.md` angepasst. PR 9.
+- `docs/data.json`: `youtube.v` in allen 44 Eintraegen bis 05.09. auf null (`/data-repair`). PR 10.
+- Fixtures `tests/fixtures/youtube_videos_`, `youtube_shorts_`, `tiktok_profile_2026-09-05`, Tests 7 auf 20.
 
 ## Offen
 
-- Manuelle Schritte stehen im Abschlussbericht: Ordner als vertrauenswuerdig bestaetigen,
-  Branch-Schutz Variante A auf main, Label `zahlen`, lokale CLI-Befehle aus dem Spickzettel.
-- Nicht angefasst: YouTube-Views falsch, Instagram null, TikTok-Likes gerundet. Fixes ueber `/scraper-fix`.
-- Manuell noch offen: Branch-Schutz Variante A auf main, Label `zahlen`, lokale CLI-Befehle.
+- Session-Umgebung ("trusted network") blockt youtube.com, tiktok.com, instagram.com, r.jina.ai.
+  Live-Pruefungen liefen ueber einen temporaeren Workflow auf dem Runner, danach geloescht.
+- YouTube-Views sind seit 06.09. eine Summe gerundeter Einzelwerte, etwa ein Prozent genau.
+- TikTok-Likes 12.08. bis 05.09. bleiben gerundet in `data.json`, nicht reparabel.
+- Manuell beim Betreiber: Branch-Schutz Variante A auf main. Label `zahlen` legt `watchdog.yml` selbst an.
 
 ## Naechster Schritt
 
-- PR mergen, dann neue Session mit `/briefing`. Erste echte Aufgabe: `/scraper-fix` fuer die
-  YouTube-Views, das ist die einzige durchgaengig falsche Zahl.
+- Am 06.09. `python3 tools/stats.py --days 3`: Eintrag 2026-09-06 mit `youtube.v` um 273.000 und
+  exaktem `tiktok.l` erwartet. Fehlt er oder null: Lauf von `update.yml` in Actions, Logs an `pruefer`.
 
 ## Geprueft
 
-- `py_compile update.py` OK, `unittest discover -s tests` 7 Tests OK.
-- `tools/check_data.py` OK (43 Eintraege), `tools/check_html.py` OK (7 IDs), `tools/stats.py` OK (23 Zeilen).
-- `json.tool .claude/settings.json` OK, `bash -n` auf alle drei Hooks OK.
-- 10 Hook-Simulationen mit erwarteten Exit-Codes, dazu ein Live-Test: `check.sh` fing eine kaputte
-  Python-Datei mit Exit 2 ab. YAML aller vier neuen Dateien mit `yaml.safe_load` OK.
-- `git diff main --stat`: `update.py`, `update.yml`, `docs/data.json` unveraendert.
+- `py_compile update.py` OK, `unittest discover -s tests` 20 Tests OK.
+- `tools/check_data.py` OK (44 Eintraege), `tools/check_html.py` OK (7 IDs), `stats.py --days 7` OK.
+- Live auf dem Runner: `get_youtube` gibt `{'f': 583, 'v': 273290}`, `get_tiktok` gibt `{'f': 2872, 'l': 13483}`.
+- CI gruen auf PR 6 bis 10. `update.yml` und `HANDLES` unveraendert.
 
 ## Branch und offene PRs
 
-- Branch: claude/setup-repo-claude-code-bm1zhu, frisch von main nach dem Merge von PR 2
-- Das Setup liegt auf main. Folge-PR entfernt `enabledPlugins`, der Skill `/pr` deckt das ab.
+- Branch: claude/briefing-h9gjow, frisch von main nach Merge von PR 10 (614633b). Keine offenen PRs.
