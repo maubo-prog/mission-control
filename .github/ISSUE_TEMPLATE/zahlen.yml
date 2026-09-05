@@ -1,0 +1,40 @@
+name: Zahlen nachtragen
+description: Werte melden, die der Auto-Abruf nicht liefert (Instagram-Follower, TikTok-Gesamtviews)
+title: "Zahlen nachtragen "
+labels: ["zahlen"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Fuer Zahlen, die nur in der App stehen. Instagram wird per `/data-repair` in
+        `docs/data.json` eingetragen. TikTok-Gesamtviews sind dort noch nicht speicherbar,
+        sie werden nur notiert, bis das Dashboard sie aus `data.json` liest.
+
+  - type: input
+    id: datum
+    attributes:
+      label: Datum
+      description: Fuer welchen Tag gilt die Zahl (Format YYYY-MM-DD)
+      placeholder: "2026-09-05"
+    validations:
+      required: true
+
+  - type: input
+    id: instagram_follower
+    attributes:
+      label: Instagram-Follower
+      description: Aus der Instagram-App oder Metricool. Nur die Zahl, ohne Punkte.
+      placeholder: "210"
+
+  - type: input
+    id: tiktok_views
+    attributes:
+      label: TikTok-Gesamtviews
+      description: Aus TikTok Studio, Analytics. Nur die Zahl, ohne Punkte.
+      placeholder: "52400"
+
+  - type: textarea
+    id: hinweis
+    attributes:
+      label: Hinweis
+      description: Optional, zum Beispiel wenn eine Zahl geschaetzt oder ungewoehnlich ist.

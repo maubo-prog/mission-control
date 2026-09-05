@@ -1,0 +1,49 @@
+name: Ausfall-Alarm
+
+# Prueft taeglich, ob der Bot-Abruf um 04:30 UTC durchgelaufen ist.
+# Kostet kein Kontingent, hier laeuft kein Claude, nur Python und die GitHub-CLI.
+
+on:
+  schedule:
+    - cron: "0 7 * * *"   # 07:00 UTC, gut zwei Stunden nach dem Abruf
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Labels sicherstellen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create bot-alarm --color B60205 --description "Abruf ausgefallen" --force
+          gh label create zahlen --color FFEC00 --description "Zahlen von Hand nachtragen" --force
+
+      - name: Heutigen Eintrag pruefen
+        run: python tools/check_data.py --today
+
+      - name: Alarm-Issue anlegen
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          offen=$(gh issue list --label bot-alarm --state open --json number --jq 'length')
+          if [ "$offen" -gt 0 ]; then
+            echo "Es gibt schon ein offenes Alarm-Issue, kein neues."
+            exit 0
+          fi
+          gh issue create \
+            --title "Abruf fehlgeschlagen $(date -u +%F)" \
+            --label bot-alarm \
+            --body "Der taegliche Abruf hat fuer heute keinen brauchbaren Eintrag in docs/data.json hinterlassen.
+
+          Naechster Schritt: eine Claude-Session auf einem claude/-Branch starten und dort \`/scraper-fix\` aufrufen.
+
+          Pruefen laesst sich das jederzeit selbst mit \`python3 tools/check_data.py --today\`."
