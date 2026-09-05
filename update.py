@@ -62,20 +62,34 @@ def grab(patterns, text):
     return None
 
 
+def parse_tiktok(html):
+    """Follower und Likes aus der Profilseite.
+
+    TikTok liefert zwei Bloecke: "stats" mit gerundeten Zahlen (13500) und
+    "statsV2" mit exakten Werten als String ("13483"). statsV2 kommt zuerst,
+    danach der alte Weg ueber "stats" und zuletzt der sichtbare Text.
+    """
+    f = grab([r'"statsV2"\s*:\s*\{[^}]*?"followerCount"\s*:\s*"(\d+)"',
+              r'"followerCount"\s*:\s*(\d+)',
+              r'([\d.,]+[KMB]?)\s*Follower'], html)
+    l = grab([r'"statsV2"\s*:\s*\{[^}]*?"heartCount"\s*:\s*"(\d+)"',
+              r'"heartCount"\s*:\s*(\d+)',
+              r'([\d.,]+[KMB]?)\s*Likes'], html)
+    return {"f": f, "l": l}
+
+
 def get_tiktok(h):
     out = {"f": None, "l": None}
     for getter in (lambda: fetch("https://www.tiktok.com/@" + h),
                    lambda: via_jina("https://www.tiktok.com/@" + h)):
         try:
             html = getter()
-        except Exception:
+        except Exception as e:
+            print("TikTok: Abruf fehlgeschlagen:", repr(e))
             continue
-        f = grab([r'"followerCount"\s*:\s*(\d+)',
-                  r'([\d.,]+[KMB]?)\s*Follower'], html)
-        l = grab([r'"heartCount"\s*:\s*(\d+)',
-                  r'([\d.,]+[KMB]?)\s*Likes'], html)
-        if f is not None:
-            out = {"f": f, "l": l}
+        parsed = parse_tiktok(html)
+        if parsed["f"] is not None:
+            out = parsed
             break
     return out
 
