@@ -1,8 +1,6 @@
-Kanal UC44N0a0qG1L8hCrh0x9OwDQ Client 2.20260904.01.00 visitorData: True
-[about-roh] Laenge 45863, aboutChannelViewModel: False, Top-Level: ['responseContext', 'contents', 'header', 'metadata', 'trackingParams', 'topbar', 'microformat']
-     "77 views"
-[about-kodiert] Laenge 45860, aboutChannelViewModel: False, Top-Level: ['responseContext', 'contents', 'header', 'metadata', 'trackingParams', 'topbar', 'microformat']
-     "77 views"
-[about-kurz] Laenge 45859, aboutChannelViewModel: False, Top-Level: ['responseContext', 'contents', 'header', 'metadata', 'trackingParams', 'topbar', 'microformat']
-     "77 views"
-Videos-Tab: 2 Videos gezaehlt, Summe der Aufrufe 137394
+Seiten: 2 Aufruf-Angaben gefunden: 2
+Erste zwanzig: ['77', '137,317']
+Summe ueber alle Seiten: 137394
+Abos laut Header: ['583', '583']
+Videos laut Header: ['97']
+Fixture Seite 1: 42535 Bytes, Summe Seite 1: 77
