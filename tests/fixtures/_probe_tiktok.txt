@@ -1,4 +1,4 @@
-[direkt] OK, Laenge 369074
+[direkt] OK, Laenge 368138
 UNIVERSAL_DATA vorhanden: True  SIGI_STATE vorhanden: False
 JSON followerCount   2 Treffer, erste: ['2872,"', '"2872"']
 JSON heartCount      2 Treffer, erste: ['13500,"', '"13483"']
@@ -8,7 +8,7 @@ JSON diggCount       2 Treffer, erste: ['0,"', '"0"']
 JSON followingCount  2 Treffer, erste: ['10,"', '"10"']
 Text Follower: ['2872']
 Text Likes:    []
-Aktueller Parser get_tiktok: {'f': 2872, 'l': 13500}
+Aktueller Parser get_tiktok: {'f': 2872, 'l': 13483}
 stats-Block: "stats":{"followerCount":2872,"followingCount":10,"heart":13500,"heartCount":13500,"videoCount":166,"diggCount":0,"friendCount":0}
 statsV2-Block: "statsV2":{"followerCount":"2872","followingCount":"10","heart":"13483","heartCount":"13483","videoCount":"166","diggCount":"0","friendCount":"0"}
 Fixture: tests/fixtures/tiktok_profile_2026-09-05.html 17892 Bytes
