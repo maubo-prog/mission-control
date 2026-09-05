@@ -1,15 +1,8 @@
-Kanal UC44N0a0qG1L8hCrh0x9OwDQ Client 2.20260904.01.00 HTML 819441
-Continuation-Tokens im HTML: 1 ['BROWSE']
-Panel-Kennungen: ['6d67937c-0000-2351-af16-14c14eea1ad4', '6d67937d-0000-2351-af16-14c14eea1ad4', '6d679381-0000-2351-af16-14c14eea1ad4', 'topbar-signin']
-
-[about-params] Laenge 115062, Zahlfelder 0
-   Text: "77 views"
-   Text: "583 subscribers"
-   Text: "583 subscribers"
-   Text: "97 videos"
-
-[kanal-roh] Laenge 115047, Zahlfelder 0
-   Text: "77 views"
-   Text: "583 subscribers"
-   Text: "583 subscribers"
-   Text: "97 videos"
+Kanal UC44N0a0qG1L8hCrh0x9OwDQ Client 2.20260904.01.00 visitorData: True
+[about-roh] Laenge 45863, aboutChannelViewModel: False, Top-Level: ['responseContext', 'contents', 'header', 'metadata', 'trackingParams', 'topbar', 'microformat']
+     "77 views"
+[about-kodiert] Laenge 45860, aboutChannelViewModel: False, Top-Level: ['responseContext', 'contents', 'header', 'metadata', 'trackingParams', 'topbar', 'microformat']
+     "77 views"
+[about-kurz] Laenge 45859, aboutChannelViewModel: False, Top-Level: ['responseContext', 'contents', 'header', 'metadata', 'trackingParams', 'topbar', 'microformat']
+     "77 views"
+Videos-Tab: 2 Videos gezaehlt, Summe der Aufrufe 137394
