@@ -55,19 +55,27 @@ jobs:
               with urllib.request.urlopen(req, timeout=30) as r:
                   return r.read().decode("utf-8", "ignore")
 
-          seiten = []
-          raw = browse({"browseId": channel, "params": "EgZ2aWRlb3PyBgQKAjoA"})
-          seiten.append(raw)
-          for _ in range(9):
-              m = re.search(r'"continuationCommand":\{"token":"([^"]+)"', raw)
-              if not m:
-                  break
-              raw = browse({"continuation": m.group(1)})
+          TABS = {"videos": "EgZ2aWRlb3PyBgQKAjoA", "shorts": "EgZzaG9ydHPyBgUKA5oBAA=="}
+          seiten_je_tab = {}
+          for tab, params in TABS.items():
+              seiten = []
+              raw = browse({"browseId": channel, "params": params})
               seiten.append(raw)
+              for _ in range(9):
+                  m = re.search(r'"continuationCommand":\{"token":"([^"]+)"', raw)
+                  if not m:
+                      break
+                  raw = browse({"continuation": m.group(1)})
+                  seiten.append(raw)
+              seiten_je_tab[tab] = seiten
+              text = "".join(seiten)
+              say("\nTab %s: %d Seiten, %d Zeichen" % (tab, len(seiten), len(text)))
+              say("   'views':", re.findall(r'"([\d.,]+[KMB]?) views"', text)[:12])
+              say("   Aufrufe-Muster:", re.findall(r'"[^"]{0,25}[\d.,]+[KMB]? (?:views|Aufrufe)[^"]{0,15}"', text)[:6])
 
+          seiten = seiten_je_tab["videos"] + seiten_je_tab["shorts"]
           alle = re.findall(r'"([\d.,]+[KMB]?) views"', "".join(seiten))
-          say("Seiten:", len(seiten), "Aufruf-Angaben gefunden:", len(alle))
-          say("Erste zwanzig:", alle[:20])
+          say("\nAufruf-Angaben gesamt:", len(alle))
 
           def compact(s):
               m = re.match(r"([\d.,]+)\s*([KMB]?)", s.strip(), re.I)
@@ -83,19 +91,19 @@ jobs:
           say("Abos laut Header:", re.findall(r'"([\d.,]+[KMB]?) subscribers"', seiten[0])[:2])
           say("Videos laut Header:", re.findall(r'"([\d.,]+[KMB]?) videos"', seiten[0])[:2])
 
-          # Erste Seite als Fixture, Tokens geschwaerzt.
-          red = seiten[0]
-          for key in ("visitorData", "trackingParams", "clickTrackingParams", "sessionId",
-                      "datasyncId", "ID_TOKEN", "token", "params", "serializedShareEntity"):
-              red = re.sub(r'("%s":")[^"]*(")' % key, r"\1GESCHWAERZT\2", red)
-          obj = json.loads(red)
+          # Je Tab die erste Seite als Fixture, Tokens geschwaerzt.
           d = pathlib.Path("tests/fixtures")
           d.mkdir(parents=True, exist_ok=True)
-          (d / "youtube_videos_2026-09-05.json").write_text(
-              json.dumps(obj, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-          seite1 = sum(compact(a) for a in re.findall(r'"([\d.,]+[KMB]?) views"', red))
-          say("Fixture Seite 1:", (d / "youtube_videos_2026-09-05.json").stat().st_size,
-              "Bytes, Summe Seite 1:", seite1)
+          for tab, seiten_tab in seiten_je_tab.items():
+              red = seiten_tab[0]
+              for key in ("visitorData", "trackingParams", "clickTrackingParams", "sessionId",
+                          "datasyncId", "ID_TOKEN", "token", "params", "serializedShareEntity"):
+                  red = re.sub(r'("%s":")[^"]*(")' % key, r"\1GESCHWAERZT\2", red)
+              ziel = d / ("youtube_%s_2026-09-05.json" % tab)
+              ziel.write_text(json.dumps(json.loads(red), ensure_ascii=False,
+                                         separators=(",", ":")), encoding="utf-8")
+              teil = sum(compact(a) for a in re.findall(r'"([\d.,]+[KMB]?) views"', red))
+              say("Fixture %s: %d Bytes, Summe Seite 1: %d" % (tab, ziel.stat().st_size, teil))
           (d / "_probe_bericht.txt").write_text("\n".join(report), encoding="utf-8")
           PY
 
