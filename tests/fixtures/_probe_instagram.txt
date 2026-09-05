@@ -1,7 +1,0 @@
-[json-endpunkt] FEHLER <HTTPError 429: 'Too Many Requests'>
-[www-json] FEHLER <HTTPError 429: 'Too Many Requests'>
-[profilseite] FEHLER <HTTPError 429: 'Too Many Requests'>
-[profilseite-embed] Status 200, Laenge 618667, Weiterleitung auf Login: False
-   Endadresse: https://www.instagram.com/spacefactswow/embed/
-   Zahlen: keine
-[lese-proxy] FEHLER <HTTPError 403: 'Forbidden'>
