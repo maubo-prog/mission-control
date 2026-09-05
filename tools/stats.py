@@ -15,7 +15,7 @@ GOAL_FOLLOWERS = 10000
 PLATFORMS = (("tiktok", "f", "TikTok-Follower"),
              ("tiktok", "l", "TikTok-Likes"),
              ("youtube", "f", "YouTube-Abos"),
-             ("youtube", "v", "YouTube-Views (unzuverlaessig, Regex greift ein Einzelvideo)"),
+             ("youtube", "v", "YouTube-Views (Summe, vor 06.09. Einzelvideo)"),
              ("instagram", "f", "Instagram-Follower"))
 
 
@@ -183,8 +183,10 @@ def report(r):
         else:
             lines.append("  %-24s %s" % (short, ", ".join(gaps)))
     lines.append("")
-    lines.append("Hinweis: YouTube-Views sind unzuverlaessig (Regex greift ein Einzelvideo).")
-    lines.append("Instagram liefert seit Beginn null, TikTok-Likes sind seit 12.08. auf 100er gerundet.")
+    lines.append("Hinweis: YouTube-Views sind seit 06.09. die Summe aller Videos und Shorts, auf etwa ein")
+    lines.append("Prozent genau. Werte davor sind Aufrufe eines Einzelvideos und nicht vergleichbar.")
+    lines.append("Instagram liefert seit Beginn null (nur manuell). TikTok-Likes sind vom 12.08. bis 05.09.")
+    lines.append("auf 100er gerundet, seitdem exakt.")
     return "\n".join(lines)
 
 
