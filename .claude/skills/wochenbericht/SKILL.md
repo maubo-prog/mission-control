@@ -23,7 +23,9 @@ allowed-tools: Read, Write, Bash
 ## Regeln
 
 - Keine Zahl erfinden und keine schaetzen. Was `stats.py` nicht liefert, steht nicht im Bericht.
-- YouTube-Views immer als unzuverlaessig kennzeichnen, die Regex greift ein Einzelvideo.
+- YouTube-Views sind seit 06.09.2026 die Summe aller Videos und Shorts, auf etwa ein Prozent genau.
+  Werte davor sind Aufrufe eines Einzelvideos: keine Deltas ueber den 06.09. hinweg ausweisen.
+- TikTok-Likes vom 12.08. bis 05.09.2026 sind auf volle 100 gerundet, Deltas in dem Fenster entsprechend grob.
 - TikTok-Views aus dem Handy-localStorage liegen nicht im Repo und fehlen deshalb im Bericht.
 - Bei negativem oder sehr kleinem Tempo die Prognose nicht schoenrechnen, sondern das offen sagen.
 - Die Content-Hinweise beziehen sich auf Zahlen, nicht auf Produktionsdetails. Die Videoarbeit
