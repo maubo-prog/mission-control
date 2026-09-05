@@ -1,0 +1,86 @@
+# TEMPORAER: holt einmalig die YouTube-About-Seite und gibt die relevanten
+# Ausschnitte ins Log, damit daraus eine Fixture unter tests/fixtures/ entsteht.
+# Wird vor dem Pull Request wieder geloescht. Schreibt nichts ins Repo.
+name: Fixture holen (temporaer)
+
+on:
+  push:
+    branches:
+      - claude/briefing-h9gjow
+
+permissions:
+  contents: read
+
+jobs:
+  fixture:
+    runs-on: ubuntu-latest
+    steps:
+      - name: About-Seite holen und Ausschnitte ausgeben
+        run: |
+          python3 - <<'PY'
+          import base64
+          import re
+          import urllib.request
+
+          UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
+          URLS = [
+              "https://www.youtube.com/@spacefactswow/about",
+              "https://www.youtube.com/@spacefactswow",
+          ]
+
+          html = ""
+          for url in URLS:
+              req = urllib.request.Request(url, headers={
+                  "User-Agent": UA,
+                  "Accept-Language": "en-US,en;q=0.9",
+                  "Accept": "text/html,application/xhtml+xml,*/*;q=0.8",
+                  "Cookie": "CONSENT=YES+1",
+              })
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as r:
+                      html = r.read().decode("utf-8", "ignore")
+                  print("OK", url, "Laenge", len(html))
+                  break
+              except Exception as e:
+                  print("FEHLER", url, repr(e))
+
+          if not html:
+              raise SystemExit("keine Seite bekommen")
+
+          KEYS = [
+              "aboutChannelViewModel",
+              "viewCountText",
+              "subscriberCountText",
+              "videoCountText",
+              "joinedDateText",
+              "canonicalChannelUrl",
+          ]
+          for key in KEYS:
+              hits = [m.start() for m in re.finditer(re.escape(key), html)]
+              print("\n=== %s: %d Treffer ===" % (key, len(hits)))
+              for pos in hits[:3]:
+                  print(repr(html[max(0, pos - 120):pos + 400]))
+
+          print("\n=== alle 'views'-Zahlen in Reihenfolge (erste 15) ===")
+          for m in list(re.finditer(r"[\d.,]+\s*(?:views|Aufrufe)", html))[:15]:
+              print(repr(html[max(0, m.start() - 60):m.end() + 20]))
+
+          # Zusammenhaengender Ausschnitt rund um den Kanal-Block, als Basis fuer
+          # die Fixture. Base64, damit das Log nichts umbricht oder verschluckt.
+          anchor = html.find("aboutChannelViewModel")
+          if anchor < 0:
+              anchor = html.find("viewCountText")
+          if anchor < 0:
+              anchor = html.find("subscriberCountText")
+          if anchor >= 0:
+              cut = html[max(0, anchor - 3000):anchor + 12000]
+              blob = base64.b64encode(cut.encode("utf-8")).decode("ascii")
+              print("\n=== FIXTURE-BASE64 Anfang (%d Zeichen Quelltext) ===" % len(cut))
+              for i in range(0, len(blob), 200):
+                  print(blob[i:i + 200])
+              print("=== FIXTURE-BASE64 Ende ===")
+          else:
+              print("\nKein Anker gefunden, Seite vermutlich eine Bot-Sperre.")
+              print(repr(html[:1500]))
+          PY
