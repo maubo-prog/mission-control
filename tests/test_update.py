@@ -46,6 +46,31 @@ def fixture(name):
     return (FIXTURES / name).read_text(encoding="utf-8")
 
 
+class TestTiktokParser(unittest.TestCase):
+    """Gegen eine echte, gekuerzte Profilseite vom 05.09.2026."""
+
+    def setUp(self):
+        self.html = fixture("tiktok_profile_2026-09-05.html")
+
+    def test_likes_kommen_exakt_aus_statsv2(self):
+        self.assertEqual(update.parse_tiktok(self.html), {"f": 2872, "l": 13483})
+
+    def test_alter_weg_lieferte_den_gerundeten_wert(self):
+        # So kam seit 12.08. die auf volle 100 gerundete Zahl in data.json.
+        self.assertEqual(update.grab([r'"heartCount"\s*:\s*(\d+)'], self.html), 13500)
+
+    def test_ohne_statsv2_greift_der_alte_weg(self):
+        html = '{"stats":{"followerCount":2872,"heartCount":13500}}'
+        self.assertEqual(update.parse_tiktok(html), {"f": 2872, "l": 13500})
+
+    def test_nur_text_greift_der_letzte_fallback(self):
+        html = "<p>2.8K Follower</p><p>13.5K Likes</p>"
+        self.assertEqual(update.parse_tiktok(html), {"f": 2800, "l": 13500})
+
+    def test_leere_seite_ergibt_none(self):
+        self.assertEqual(update.parse_tiktok("<html></html>"), {"f": None, "l": None})
+
+
 class TestYoutubeParser(unittest.TestCase):
     """Gegen echte, gekuerzte Antworten vom 05.09.2026."""
 

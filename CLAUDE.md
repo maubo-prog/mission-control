@@ -69,7 +69,9 @@ Eintrag in `docs/data.json`. Nur nach Rueckfrage, danach immer `git checkout doc
   GitHub-Runner: JSON-Endpunkt und Profilseite antworten mit 429, der Lese-Proxy mit 403, die
   Embed-Seite kommt durch, nennt aber keine Follower. Ohne Login gibt es die Zahl nicht, und Login
   umgehen wir nicht. Weg: Issue-Formular "Zahlen nachtragen" plus `/data-repair`.
-- TikTok-Likes werden seit 12.08. auf volle 100 gerundet geliefert.
+- TikTok-Likes waren vom 12.08. bis 05.09. auf volle 100 gerundet: der Parser las den Block `stats`
+  (gerundet) statt `statsV2` (exakt, als String). Seit dem Fix kommt `statsV2` zuerst. Die Werte
+  in `docs/data.json` aus diesem Zeitraum bleiben gerundet, das ist bekannt und nicht reparabel.
 - TikTok-Ausfaelle am 23.08. und 28.08., ohne Alarm bemerkt niemand so etwas.
 - TikTok-Views und Instagram-Nachtraege liegen nur im localStorage des Handys, nicht im Repo.
 
