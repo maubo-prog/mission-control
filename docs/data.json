@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-26T10:20:52+00:00",
+ "updated": "2026-10-27T09:55:45+00:00",
  "handles": {
   "tiktok": "spacefactswow",
   "youtube": "spacefactswow",
@@ -1331,6 +1331,20 @@
    "youtube": {
     "f": 641,
     "v": 357522
+   },
+   "instagram": {
+    "f": null
+   }
+  },
+  {
+   "date": "2026-10-27",
+   "tiktok": {
+    "f": 3020,
+    "l": 14815
+   },
+   "youtube": {
+    "f": 641,
+    "v": 360067
    },
    "instagram": {
     "f": null
